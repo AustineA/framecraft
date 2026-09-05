@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { isDark } from "@/lib/color";
 import { exportDevice, localeName } from "@/lib/editor-data";
@@ -14,11 +14,50 @@ import {
 import { AppScreen, appScreenBackground } from "./app-screens";
 import { DeviceFrame, frameMetrics } from "./device-frame";
 
+/** Marks the gap a dragged slide would drop into. */
+function DropLine({ side }: { side: "left" | "right" }) {
+  return (
+    <span
+      aria-hidden
+      className="absolute inset-y-2 z-10 w-[3px] rounded-full bg-[var(--purple)]"
+      style={side === "left" ? { left: -11 } : { right: -11 }}
+    />
+  );
+}
+
 export function PreviewOverlay() {
   const { screens, selectedScreenId, canvasDeviceId, media, locale } =
     useEditor();
   const dispatch = useEditorDispatch();
   const cardRefs = useRef(new Map<string, HTMLLIElement>());
+  /** Id being dragged, and the gap it would drop into. */
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dropAt, setDropAt] = useState<number | null>(null);
+
+  const endDrag = () => {
+    setDragId(null);
+    setDropAt(null);
+  };
+
+  /**
+   * Which gap the pointer is nearest, given the card it is over.
+   *
+   * Cards are wide, so the midpoint decides whether the slide lands before
+   * or after the one under the cursor.
+   */
+  const gapFor = (index: number, event: { clientX: number }, node: Element) => {
+    const rect = node.getBoundingClientRect();
+    return event.clientX < rect.left + rect.width / 2 ? index : index + 1;
+  };
+
+  const drop = () => {
+    if (!dragId || dropAt === null) return endDrag();
+    const from = screens.findIndex((s) => s.id === dragId);
+    // The gap index counts the dragged card, so close it up when moving right.
+    const toIndex = dropAt > from ? dropAt - 1 : dropAt;
+    dispatch({ type: "moveScreen", id: dragId, toIndex });
+    endDrag();
+  };
 
   const device = exportDevice(canvasDeviceId);
   const deviceName = device.name;
@@ -85,10 +124,18 @@ export function PreviewOverlay() {
           </button>
         </div>
 
-        <ul className="flex flex-1 items-center gap-5 overflow-x-auto bg-[#E9E9EC] px-[34px] py-[42px]">
-          {screens.map((screen) => {
+        <ul
+          className="flex flex-1 items-center gap-5 overflow-x-auto bg-[#E9E9EC] px-[34px] py-[42px]"
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => {
+            event.preventDefault();
+            drop();
+          }}
+        >
+          {screens.map((screen, index) => {
             const dark = isDark(screen.bg);
             const isSelected = screen.id === selectedScreenId;
+            const dragging = dragId === screen.id;
             return (
               <li
                 key={screen.id}
@@ -96,15 +143,42 @@ export function PreviewOverlay() {
                   if (node) cardRefs.current.set(screen.id, node);
                   else cardRefs.current.delete(screen.id);
                 }}
-                className="shrink-0"
+                onDragOver={(event) => {
+                  if (!dragId) return;
+                  event.preventDefault();
+                  setDropAt(gapFor(index, event, event.currentTarget));
+                }}
+                className={`relative shrink-0 transition-opacity ${
+                  dragging ? "opacity-40" : "opacity-100"
+                }`}
               >
+                {/*
+                  One marker per gap: the line sits before this card, and
+                  only the last card also owns the gap after it.
+                */}
+                {dragId && dropAt === index ? <DropLine side="left" /> : null}
+                {dragId &&
+                index === screens.length - 1 &&
+                dropAt === screens.length ? (
+                  <DropLine side="right" />
+                ) : null}
+
                 <button
                   type="button"
+                  draggable
+                  onDragStart={(event) => {
+                    setDragId(screen.id);
+                    setDropAt(index);
+                    event.dataTransfer.effectAllowed = "move";
+                    // Firefox needs data set or the drag never starts.
+                    event.dataTransfer.setData("text/plain", screen.id);
+                  }}
+                  onDragEnd={endDrag}
                   onClick={() =>
                     dispatch({ type: "selectScreen", id: screen.id })
                   }
                   aria-current={isSelected ? "true" : undefined}
-                  className={`flex w-[262px] flex-col items-center gap-[10px] overflow-hidden rounded-[4px] px-[15px] pt-9 shadow-[0_8px_20px_#00000022] transition-[outline] ${
+                  className={`flex w-[262px] cursor-grab flex-col items-center gap-[10px] overflow-hidden rounded-[4px] px-[15px] pt-9 shadow-[0_8px_20px_#00000022] transition-[outline] active:cursor-grabbing ${
                     isSelected
                       ? "outline-2 outline-offset-2 outline-[var(--purple)]"
                       : "outline-0"

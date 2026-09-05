@@ -17,6 +17,7 @@ import { savedLabel, templateCopyName } from "@/lib/projects";
 import { TEMPLATES, type Template } from "@/lib/templates";
 
 import { ArtboardCard } from "./artboard";
+import { CopyButton } from "./copy-button";
 
 /**
  * Cards render a real artboard, scaled to the card and cropped to its top —
@@ -231,6 +232,12 @@ export function StartScreen() {
                     </span>
                     <ArrowRight className="size-[15px] shrink-0 text-[var(--muted)] opacity-0 transition-opacity group-hover:opacity-100" />
                   </button>
+
+                  <CopyButton
+                    value={project.name}
+                    label={`Copy name of ${project.name}`}
+                    className="absolute top-1/2 right-[82px] -translate-y-1/2 opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100"
+                  />
 
                   <button
                     type="button"

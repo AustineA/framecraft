@@ -13,6 +13,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { useEditor, useProjects } from "@/lib/editor-store";
 import { projectFileName, toProjectFile } from "@/lib/project-file";
+
+import { CopyButton } from "./copy-button";
 import { savedLabel } from "@/lib/projects";
 
 export function ProjectMenu() {
@@ -98,7 +100,7 @@ export function ProjectMenu() {
   };
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative flex items-center gap-[2px]">
       <button
         type="button"
         aria-haspopup="menu"
@@ -109,6 +111,12 @@ export function ProjectMenu() {
         {active?.name ?? "Untitled"}
         <ChevronDown className="size-[12px] text-[var(--muted)]" />
       </button>
+
+      <CopyButton
+        value={active?.name ?? "Untitled"}
+        label="Copy project name"
+        className="size-[22px]"
+      />
 
       {open ? (
         <div

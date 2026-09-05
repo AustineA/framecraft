@@ -77,6 +77,7 @@ export type Action =
   | { type: "selectScreen"; id: string }
   | { type: "addScreen" }
   | { type: "deleteScreen"; id: string }
+  | { type: "moveScreen"; id: string; toIndex: number }
   | { type: "updateScreen"; id: string; patch: Partial<Screen> }
   | { type: "addMedia"; assets: MediaAsset[] }
   | { type: "removeMedia"; id: string }
@@ -230,6 +231,24 @@ function reducer(state: State, action: Action): State {
       return withHistory(state, {
         screens: remaining,
         selectedScreenId: nextSelected,
+      });
+    }
+
+    case "moveScreen": {
+      const from = state.screens.findIndex((s) => s.id === action.id);
+      const to = Math.max(0, Math.min(state.screens.length - 1, action.toIndex));
+      if (from === -1 || from === to) return state;
+
+      const screens = [...state.screens];
+      const [moved] = screens.splice(from, 1);
+      screens.splice(to, 0, moved);
+
+      // Position is what `number` means, so it is reassigned, not carried.
+      return withHistory(state, {
+        screens: screens.map((screen, index) => ({
+          ...screen,
+          number: String(index + 1).padStart(2, "0"),
+        })),
       });
     }
 
@@ -390,7 +409,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
    * screen with untouched copies. The first real change clears this and the
    * project saves from then on.
    */
-  const pristine = useRef<{ id: string; payload: string | null } | null>(null);
+  const pristine = useRef<string | null>(null);
 
   // Load after mount so server and client first render agree.
   useEffect(() => {
@@ -409,18 +428,17 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   // Autosave the active project. Keyed on the persisted payload alone, so
   // recording the save does not retrigger this effect.
   const payload = state.hydrated ? JSON.stringify(persistable(state)) : null;
+  // `projectLoaded` clears the history, so anything in it is a change the
+  // user made to this project since it opened.
+  const edited = state.past.length > 0;
   useEffect(() => {
     const current = store.current;
     if (!payload || !current) return;
 
-    // Untouched template copy: hold it in memory only. The first payload
-    // after loading defines "unchanged"; anything different is a real edit.
-    if (pristine.current?.id === current.activeId) {
-      if (pristine.current.payload === null) {
-        pristine.current.payload = payload;
-        return;
-      }
-      if (pristine.current.payload === payload) return;
+    // An untouched template copy is held in memory only, so browsing
+    // templates does not fill the start screen with copies nobody changed.
+    if (pristine.current === current.activeId) {
+      if (!edited) return;
       pristine.current = null;
     }
 
@@ -441,7 +459,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       savedAt,
       saved,
     });
-  }, [payload]);
+  }, [payload, edited]);
 
   const projectsApi = useMemo(() => {
     const apply = (next: ProjectStore, load?: ProjectRecord) => {
@@ -482,7 +500,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
 
         if (fromTemplate) {
           // Held back from storage until the first edit.
-          pristine.current = { id: project.id, payload: null };
+          pristine.current = project.id;
           store.current = next;
           dispatch({
             type: "projectLoaded",
@@ -508,7 +526,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         if (!current) return;
 
         // An untouched template copy was never saved; drop it on the way out.
-        const dropped = pristine.current?.id;
+        const dropped = pristine.current;
         pristine.current = null;
         apply({
           ...current,
