@@ -194,6 +194,9 @@ function applySet(screen: Screen, flags: Flags, locale: string): Screen {
   const fontSize = num(flags, "font-size");
   if (fontSize !== undefined) next.fontSize = Math.min(160, Math.max(8, fontSize));
 
+  const subheadSize = num(flags, "subhead-size");
+  if (subheadSize !== undefined) next.subheadSize = Math.min(120, Math.max(8, subheadSize));
+
   const align = str(flags, "align");
   if (align !== undefined) {
     next.align = oneOf("align", align, ["left", "center", "right"]) as Align;
@@ -238,8 +241,8 @@ function applySet(screen: Screen, flags: Flags, locale: string): Screen {
 /** Flags every command accepts, so a typo fails loudly instead of silently. */
 const SET_FLAGS = [
   "screen", "locale", "headline", "subhead", "brand-chip", "screen-name",
-  "name", "bg", "app", "font", "size", "align", "frame", "device-color",
-  "scale", "x", "y", "text-x", "text-y", "hide-headline", "show-headline",
+  "name", "bg", "app", "font", "font-size", "subhead-size", "size", "align", "frame", "device-color",
+  "device-scale", "device-x", "device-y", "scale", "x", "y", "text-x", "text-y", "hide-headline", "show-headline",
   "hide-chip", "show-chip", "hide-device", "show-device",
   "hide-status", "show-status",
 ] as const;

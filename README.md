@@ -78,17 +78,26 @@ framecraft status      # where it installed from
 framecraft uninstall   # remove it
 ```
 
-## Moving work between the two
+## Sharing one file with an agent
 
-A project is one JSON file, and both sides read and write it:
+Point the editor at a file on disk and both sides work on it live — no
+exporting and re-importing:
 
-| Direction | How |
-| --- | --- |
-| CLI → editor | Start screen → **Open file** |
-| Editor → CLI | Project menu → **Download file** |
+1. Project menu → **Link to file on disk…** (or **Open file from disk…** for
+   one an agent already made). Keep the suggested name, `framecraft.json`.
+2. Run the agent in that folder. `framecraft` finds `framecraft.json` in the
+   working directory or any parent, so no path is needed.
+
+From then on the editor saves straight into that file, and edits the agent
+makes to it appear in the editor within a couple of seconds. The link
+survives reloads, and the header shows which file is attached.
+
+Needs a Chromium-family browser (File System Access). Without it — or for a
+one-off — the manual route still works: **Download file** in the project
+menu, and **Open file** on the start screen.
 
 Screens, translations, fonts, frames, positions, uploaded media and export
-settings all survive the trip.
+settings all travel in the file.
 
 ## Requirements
 

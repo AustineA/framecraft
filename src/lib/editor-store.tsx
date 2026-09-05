@@ -2,11 +2,13 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
   useReducer,
   useRef,
+  useState,
   type Dispatch,
   type ReactNode,
 } from "react";
@@ -16,7 +18,22 @@ import {
   INITIAL_STATE,
   TEXT_STYLES,
   ZOOM_STEPS,
+  SUBHEAD_SIZE,
 } from "./editor-data";
+import {
+  chooseFile,
+  ensureWritable,
+  fileLinkSupported,
+  forgetHandle,
+  loadHandle,
+  openExisting,
+  parse as parseLinked,
+  readFile,
+  saveHandle,
+  writeFile,
+  type LinkHandle,
+} from "./file-link";
+import { toProjectFile, type ProjectFile } from "./project-file";
 import {
   createProject,
   duplicateOf,
@@ -136,6 +153,7 @@ function normalize(payload: Partial<EditorState>): Partial<EditorState> {
         textY: merged.textY ?? 0,
         brandChipVisible: merged.brandChipVisible ?? true,
         deviceChrome: merged.deviceChrome ?? true,
+        subheadSize: merged.subheadSize ?? SUBHEAD_SIZE,
         decorations: merged.decorations ?? [],
         accentShape: merged.accentShape ?? null,
         deviceFrame: DEVICE_FRAMES.includes(merged.deviceFrame)
@@ -397,6 +415,12 @@ const ProjectsContext = createContext<{
   renameProject: (id: string, name: string) => void;
   duplicateProject: (id: string) => void;
   deleteProject: (id: string) => void;
+  /** Name of the file this project is linked to, if any. */
+  linkedFile: string | null;
+  fileLinkSupported: boolean;
+  linkToFile: () => Promise<void>;
+  openLinkedFile: () => Promise<void>;
+  unlinkFile: () => Promise<void>;
 } | null>(null);
 
 export function EditorProvider({ children }: { children: ReactNode }) {
@@ -410,6 +434,15 @@ export function EditorProvider({ children }: { children: ReactNode }) {
    * project saves from then on.
    */
   const pristine = useRef<string | null>(null);
+
+  /**
+   * The file this project shares with the CLI.
+   *
+   * `seenAt` is the timestamp of the last content we wrote or read, so our
+   * own writes are not mistaken for someone else's edit.
+   */
+  const link = useRef<{ handle: LinkHandle; seenAt: number } | null>(null);
+  const [linkedFile, setLinkedFile] = useState<string | null>(null);
 
   // Load after mount so server and client first render agree.
   useEffect(() => {
@@ -460,6 +493,88 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       saved,
     });
   }, [payload, edited]);
+
+  /** Replaces the open project with what the file on disk now holds. */
+  const adopt = useCallback((file: ProjectFile, modifiedAt: number) => {
+    const current = store.current;
+    if (!current) return;
+    link.current = link.current && { ...link.current, seenAt: modifiedAt };
+
+    const next: ProjectStore = {
+      ...current,
+      projects: current.projects.map((project) =>
+        project.id === current.activeId
+          ? { ...project, name: file.name, data: file.project, updatedAt: Date.now() }
+          : project,
+      ),
+    };
+    store.current = next;
+    writeStore(next);
+    dispatch({
+      type: "projectLoaded",
+      projects: next.projects.map(meta),
+      activeId: next.activeId,
+      view: next.view,
+      data: file.project,
+    });
+  }, []);
+
+  // Adopt the linked file when a project opens, so a run the agent made
+  // while this tab was closed is what you come back to.
+  useEffect(() => {
+    let cancelled = false;
+    link.current = null;
+    const id = state.activeProjectId;
+    if (!id) return;
+
+    void (async () => {
+      const handle = await loadHandle(id);
+      if (cancelled) return;
+      if (!handle || !(await ensureWritable(handle))) {
+        if (!cancelled) setLinkedFile(null);
+        return;
+      }
+      const stamp = await readFile(handle);
+      if (cancelled) return;
+      link.current = { handle, seenAt: stamp?.modifiedAt ?? 0 };
+      setLinkedFile(handle.name);
+      const file = stamp && parseLinked(stamp.text);
+      if (file && stamp) adopt(file, stamp.modifiedAt);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.activeProjectId, adopt]);
+
+  // Poll for edits the agent makes while this tab is open.
+  useEffect(() => {
+    const tick = async () => {
+      const current = link.current;
+      if (!current || document.visibilityState !== "visible") return;
+      const stamp = await readFile(current.handle);
+      if (!stamp || stamp.modifiedAt <= current.seenAt) return;
+      const file = parseLinked(stamp.text);
+      if (file) adopt(file, stamp.modifiedAt);
+      else link.current = { ...current, seenAt: stamp.modifiedAt };
+    };
+    const id = setInterval(() => void tick(), 1500);
+    return () => clearInterval(id);
+  }, [adopt]);
+
+  // Mirror every save into the linked file.
+  const activeName = state.projects.find(
+    (project) => project.id === state.activeProjectId,
+  )?.name;
+  useEffect(() => {
+    const current = link.current;
+    if (!payload || !current || !activeName) return;
+    void (async () => {
+      const file = toProjectFile(activeName, JSON.parse(payload) as EditorState);
+      const modifiedAt = await writeFile(current.handle, file);
+      if (modifiedAt && link.current) link.current.seenAt = modifiedAt;
+    })();
+  }, [payload, activeName]);
 
   const projectsApi = useMemo(() => {
     const apply = (next: ProjectStore, load?: ProjectRecord) => {
@@ -583,10 +698,60 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const activeId = state.activeProjectId;
+
+  /** Points this project at a file, seeding it with what is open now. */
+  const attach = useCallback(
+    async (handle: LinkHandle | null, adoptExisting: boolean) => {
+      if (!handle || !activeId) return;
+      if (!(await ensureWritable(handle))) return;
+      await saveHandle(activeId, handle);
+      link.current = { handle, seenAt: 0 };
+      setLinkedFile(handle.name);
+
+      const stamp = adoptExisting ? await readFile(handle) : null;
+      const existing = stamp && parseLinked(stamp.text);
+      if (existing && stamp) {
+        adopt(existing, stamp.modifiedAt);
+        return;
+      }
+      // Nothing usable on disk yet: write the open project into it.
+      const record = store.current?.projects.find((p) => p.id === activeId);
+      if (!record) return;
+      const modifiedAt = await writeFile(
+        handle,
+        toProjectFile(record.name, record.data as EditorState),
+      );
+      if (modifiedAt) link.current = { handle, seenAt: modifiedAt };
+    },
+    [activeId, adopt],
+  );
+
+  const linkApi = useMemo(
+    () => ({
+      linkedFile,
+      fileLinkSupported: fileLinkSupported(),
+      linkToFile: async () => attach(await chooseFile(), false),
+      openLinkedFile: async () => attach(await openExisting(), true),
+      unlinkFile: async () => {
+        if (!activeId) return;
+        await forgetHandle(activeId);
+        link.current = null;
+        setLinkedFile(null);
+      },
+    }),
+    [linkedFile, activeId, attach],
+  );
+
+  const projects = useMemo(
+    () => ({ ...projectsApi, ...linkApi }),
+    [projectsApi, linkApi],
+  );
+
   return (
     <StateContext.Provider value={state}>
       <DispatchContext.Provider value={dispatch}>
-        <ProjectsContext.Provider value={projectsApi}>
+        <ProjectsContext.Provider value={projects}>
           {children}
         </ProjectsContext.Provider>
       </DispatchContext.Provider>

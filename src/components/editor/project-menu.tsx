@@ -5,6 +5,9 @@ import {
   ChevronDown,
   Copy,
   Download,
+  FolderOpen,
+  Link2,
+  Link2Off,
   Pencil,
   Plus,
   Trash2,
@@ -28,6 +31,11 @@ export function ProjectMenu() {
     renameProject,
     duplicateProject,
     deleteProject,
+    linkedFile,
+    fileLinkSupported,
+    linkToFile,
+    openLinkedFile,
+    unlinkFile,
   } = useProjects();
 
   const editor = useEditor();
@@ -117,6 +125,16 @@ export function ProjectMenu() {
         label="Copy project name"
         className="size-[22px]"
       />
+
+      {linkedFile ? (
+        <span
+          title={`Shared with ${linkedFile}`}
+          className="flex items-center gap-[3px] rounded-[5px] bg-[#0A84FF14] px-[5px] py-[2px] text-[9px] font-semibold text-[var(--purple)]"
+        >
+          <Link2 className="size-[10px]" />
+          {linkedFile}
+        </span>
+      ) : null}
 
       {open ? (
         <div
@@ -211,6 +229,37 @@ export function ProjectMenu() {
                     setOpen(false);
                   },
                 },
+                ...(fileLinkSupported
+                  ? linkedFile
+                    ? [
+                        {
+                          label: `Unlink ${linkedFile}`,
+                          icon: Link2Off,
+                          onClick: () => {
+                            void unlinkFile();
+                            setOpen(false);
+                          },
+                        },
+                      ]
+                    : [
+                        {
+                          label: "Link to file on disk…",
+                          icon: Link2,
+                          onClick: () => {
+                            void linkToFile();
+                            setOpen(false);
+                          },
+                        },
+                        {
+                          label: "Open file from disk…",
+                          icon: FolderOpen,
+                          onClick: () => {
+                            void openLinkedFile();
+                            setOpen(false);
+                          },
+                        },
+                      ]
+                  : []),
               ].map(({ label, icon: Icon, onClick }) => (
                 <button
                   key={label}

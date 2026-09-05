@@ -62,6 +62,8 @@ export type Screen = {
   translations: Record<string, LocalizedText>;
   /** Headline size in App Store pixels (rendered at ARTBOARD_SCALE). */
   fontSize: number;
+  /** Subtitle size, in the same authored units as fontSize. */
+  subheadSize: number;
   align: Align;
   headlineVisible: boolean;
   deviceVisible: boolean;

@@ -16,6 +16,15 @@ moment; every export after that reuses the build.
 
 ---
 
+## Sharing a file with the editor
+
+The editor can attach itself to the same `framecraft.json` you drive from
+here: project menu → **Link to file on disk…**. It then writes every change
+into that file and picks up yours within a couple of seconds, so an agent and
+a person can work on one project without exporting anything.
+
+---
+
 ## The project file
 
 Commands act on `framecraft.json` in the working directory, or the nearest

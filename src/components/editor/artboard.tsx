@@ -125,14 +125,19 @@ export function ArtboardCard({
           />
           <EditableText
             label="Subhead"
+            multiline
             editable={editable}
             value={text.subhead}
             onCommit={(value) =>
               commit(textPatch(screen, locale, "subhead", value))
             }
-            className={`w-full text-[12px] font-medium ${textAlign} ${
+            className={`w-full font-medium whitespace-pre-line ${textAlign} ${
               dark ? "text-[#FFFFFFB0]" : "text-[#515154]"
             }`}
+            style={{
+              fontSize: screen.subheadSize * ARTBOARD_SCALE,
+              lineHeight: 1.3,
+            }}
           />
         </div>
       ) : null}

@@ -7,6 +7,9 @@ import type { EditorState, ExportDevice, Screen } from "./editor-types";
  */
 export const ARTBOARD_SCALE = 34 / 72;
 
+/** Default subtitle size: the 12px the subhead rendered at before it was adjustable. */
+export const SUBHEAD_SIZE = 25;
+
 export const ARTBOARD_WIDTH = 392;
 export const ARTBOARD_HEIGHT = 768;
 
@@ -25,6 +28,7 @@ export const SCREENS: Screen[] = [
     mediaId: null,
     translations: {},
     fontSize: 72,
+    subheadSize: SUBHEAD_SIZE,
     align: "center",
     headlineVisible: true,
     deviceVisible: true,
@@ -54,6 +58,7 @@ export const SCREENS: Screen[] = [
     mediaId: null,
     translations: {},
     fontSize: 72,
+    subheadSize: SUBHEAD_SIZE,
     align: "center",
     headlineVisible: true,
     deviceVisible: true,
@@ -83,6 +88,7 @@ export const SCREENS: Screen[] = [
     mediaId: null,
     translations: {},
     fontSize: 72,
+    subheadSize: SUBHEAD_SIZE,
     align: "center",
     headlineVisible: true,
     deviceVisible: true,
@@ -112,6 +118,7 @@ export const SCREENS: Screen[] = [
     mediaId: null,
     translations: {},
     fontSize: 72,
+    subheadSize: SUBHEAD_SIZE,
     align: "center",
     headlineVisible: true,
     deviceVisible: true,
@@ -141,6 +148,7 @@ export const SCREENS: Screen[] = [
     mediaId: null,
     translations: {},
     fontSize: 72,
+    subheadSize: SUBHEAD_SIZE,
     align: "center",
     headlineVisible: true,
     deviceVisible: true,
@@ -170,6 +178,7 @@ export const SCREENS: Screen[] = [
     mediaId: null,
     translations: {},
     fontSize: 72,
+    subheadSize: SUBHEAD_SIZE,
     align: "center",
     headlineVisible: true,
     deviceVisible: true,

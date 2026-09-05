@@ -98,44 +98,6 @@ function HexField({
   );
 }
 
-function NumberField({
-  label,
-  min,
-  max,
-  value,
-  onCommit,
-}: {
-  label: string;
-  min: number;
-  max: number;
-  value: number;
-  onCommit: (value: number) => void;
-}) {
-  const { shown, draft, setDraft, begin, end } = useDraft(String(value));
-  const commit = () => {
-    end();
-    const parsed = Number(draft);
-    if (draft.trim() !== "" && Number.isFinite(parsed)) {
-      onCommit(Math.min(max, Math.max(min, Math.round(parsed))));
-    }
-  };
-  return (
-    <input
-      type="text"
-      inputMode="numeric"
-      aria-label={label}
-      value={shown}
-      onFocus={begin}
-      onChange={(event) => setDraft(event.target.value)}
-      onBlur={commit}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") event.currentTarget.blur();
-      }}
-      className="w-[30px] bg-transparent text-right text-[10px] text-[var(--ink)] outline-none"
-    />
-  );
-}
-
 function SectionTitle({ children }: { children: ReactNode }) {
   return (
     <h3 className="text-[12px] font-[650] text-[var(--ink)]">{children}</h3>
@@ -548,22 +510,34 @@ export function InspectorPanel() {
               className="h-[34px] rounded-[7px] border border-[var(--line)] bg-white px-[10px] text-[10px] text-[var(--ink)] outline-none focus:border-[var(--purple)]"
             />
 
-            <div className="flex h-[36px] gap-2">
+            <div className="flex h-[36px]">
               <FontPicker
                 value={screen.fontFamily}
                 onChange={(fontFamily) => patch({ fontFamily })}
               />
-              <div className="flex h-full w-[68px] items-center justify-center gap-1 rounded-[7px] bg-[#F7F7F9]">
-                <NumberField
-                  label="Font size"
-                  min={8}
-                  max={160}
-                  value={screen.fontSize}
-                  onCommit={(fontSize) => patch({ fontSize })}
-                />
-                <span className="text-[10px] text-[var(--ink)]">px</span>
-              </div>
             </div>
+
+            <ValueRow label="Headline size">
+              <SliderValue
+                label="Headline size"
+                min={16}
+                max={160}
+                value={screen.fontSize}
+                onChange={(fontSize) => patch({ fontSize })}
+                format={(value) => `${value}px`}
+              />
+            </ValueRow>
+
+            <ValueRow label="Subtitle size">
+              <SliderValue
+                label="Subtitle size"
+                min={8}
+                max={80}
+                value={screen.subheadSize}
+                onChange={(subheadSize) => patch({ subheadSize })}
+                format={(value) => `${value}px`}
+              />
+            </ValueRow>
 
             {!isBase && !hasTranslation(screen, locale, "headline") ? (
               <p className="text-[9px] text-[var(--muted)]">
