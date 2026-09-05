@@ -3,15 +3,16 @@
 import { Check, X } from "lucide-react";
 import { useRef, useState } from "react";
 
-import { EXPORT_DEVICES } from "@/lib/editor-data";
+import { EXPORT_DEVICES, localeName } from "@/lib/editor-data";
 import { useEditor, useEditorDispatch } from "@/lib/editor-store";
 import {
   deliver,
   exportHeightFor,
-  fileNameFor,
+  filePathFor,
   renderNode,
   waitForFonts,
 } from "@/lib/export-image";
+import { exportLocales } from "@/lib/localize";
 
 import { ArtboardCard } from "./artboard";
 
@@ -21,8 +22,14 @@ import { ArtboardCard } from "./artboard";
  */
 const BYTES_PER_PIXEL = 0.19;
 
+/** Two frames is enough for React to commit and the browser to paint. */
+const nextPaint = () =>
+  new Promise((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve(null))),
+  );
+
 export function ExportSheet() {
-  const { screens, media, exportDeviceIds, exportFormat, exportNaming } =
+  const { screens, media, locale, exportDeviceIds, exportFormat, exportNaming } =
     useEditor();
   const dispatch = useEditorDispatch();
   const nodeRefs = useRef(new Map<string, HTMLDivElement>());
@@ -30,17 +37,21 @@ export function ExportSheet() {
   const [error, setError] = useState<string | null>(null);
   // Render targets are heavy, so they only mount for the duration of a run.
   const [rendering, setRendering] = useState(false);
+  /** Artboards are re-rendered per locale rather than mounted per locale. */
+  const [renderLocale, setRenderLocale] = useState(locale);
 
   const devices = EXPORT_DEVICES.filter((device) =>
     exportDeviceIds.includes(device.id),
   );
-  const total = screens.length * devices.length;
+  const locales = exportLocales(screens);
+  const total = screens.length * devices.length * locales.length;
   const megabytes =
     (devices.reduce(
       (sum, device) => sum + device.width * device.height * BYTES_PER_PIXEL,
       0,
     ) *
-      screens.length) /
+      screens.length *
+      locales.length) /
     1_000_000;
 
   const close = () => dispatch({ type: "setExportOpen", open: false });
@@ -52,29 +63,42 @@ export function ExportSheet() {
     setProgress(0);
     try {
       // Let the off-screen artboards mount before we rasterise them.
-      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      await nextPaint();
       await waitForFonts();
       const files: { name: string; blob: Blob }[] = [];
       let done = 0;
-      for (const screen of screens) {
-        for (const device of devices) {
-          const node = nodeRefs.current.get(`${screen.id}:${device.id}`);
-          if (!node) throw new Error(`Missing artboard for ${screen.name}`);
-          files.push({
-            name: fileNameFor(screen, device, exportFormat, exportNaming),
-            blob: await renderNode(node, device, exportFormat),
-          });
-          done += 1;
-          setProgress(done);
+      for (const current of locales) {
+        // Swap the copy, let React paint, then rasterise that locale's set.
+        setRenderLocale(current);
+        await nextPaint();
+        for (const screen of screens) {
+          for (const device of devices) {
+            const node = nodeRefs.current.get(`${screen.id}:${device.id}`);
+            if (!node) throw new Error(`Missing artboard for ${screen.name}`);
+            files.push({
+              name: filePathFor(
+                screen,
+                device,
+                exportFormat,
+                exportNaming,
+                current,
+              ),
+              blob: await renderNode(node, device, exportFormat),
+            });
+            done += 1;
+            setProgress(done);
+          }
         }
       }
       await deliver(files);
       setProgress(null);
       setRendering(false);
+      setRenderLocale(locale);
       close();
     } catch (cause) {
       setProgress(null);
       setRendering(false);
+      setRenderLocale(locale);
       setError(cause instanceof Error ? cause.message : "Export failed");
     }
   };
@@ -174,7 +198,7 @@ export function ExportSheet() {
 
             <div className="flex h-[46px] items-center justify-between rounded-[10px] border border-[var(--hairline)] bg-white px-3">
               <span className="text-[10px] font-medium text-[var(--ink)]">
-                Include locale and device in filenames
+                Include screen name and device in filenames
               </span>
               <button
                 type="button"
@@ -193,8 +217,15 @@ export function ExportSheet() {
             </div>
 
             <div className="flex h-[54px] items-center justify-between rounded-[10px] bg-[#007AFF0C] px-3">
-              <span className="text-[10px] text-[#005BBB]">
-                {total} screenshots · {megabytes.toFixed(1)} MB
+              <span className="flex flex-col gap-[2px]">
+                <span className="text-[10px] text-[#005BBB]">
+                  {total} screenshots · {megabytes.toFixed(1)} MB
+                </span>
+                <span className="text-[9px] text-[#4A87C4]">
+                  {locales.length === 1
+                    ? `One folder · ${localeName(locales[0])}`
+                    : `${locales.length} language folders · ${locales.join(", ")}`}
+                </span>
               </span>
               <span className="text-[10px] font-[650] text-[var(--purple)]">
                 {isExporting ? `${progress} of ${total}` : "Ready"}
@@ -249,6 +280,7 @@ export function ExportSheet() {
               <ArtboardCard
                 screen={screen}
                 media={media}
+                locale={renderLocale}
                 height={exportHeightFor(device)}
               />
             </div>

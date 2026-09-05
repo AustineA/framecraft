@@ -14,10 +14,13 @@ import { useState, type ReactNode } from "react";
 
 import { isValidHex } from "@/lib/color";
 import {
+  BASE_LOCALE,
   BRIGHT_BACKGROUNDS,
   DEVICE_COLORS,
   EXPORT_DEVICES,
+  LOCALES,
   PHONE_FRAMES,
+  localeName,
 } from "@/lib/editor-data";
 import {
   useEditor,
@@ -25,6 +28,7 @@ import {
   useSelectedScreen,
 } from "@/lib/editor-store";
 import type { Align } from "@/lib/editor-types";
+import { hasTranslation, resolveText, textPatch, translatedCount } from "@/lib/localize";
 
 import { FontPicker } from "./font-picker";
 
@@ -246,12 +250,19 @@ function ValueRow({
 }
 
 export function InspectorPanel() {
-  const { inspectorTab, canvasDeviceId } = useEditor();
+  const { inspectorTab, canvasDeviceId, locale, screens } = useEditor();
   const dispatch = useEditorDispatch();
   const screen = useSelectedScreen();
 
   const patch = (value: Partial<typeof screen>) =>
     dispatch({ type: "updateScreen", id: screen.id, patch: value });
+
+  // Slide copy is edited in the active locale; en-US writes the base fields.
+  const text = resolveText(screen, locale);
+  const setText = (field: "headline" | "subhead" | "brandChip", value: string) =>
+    patch(textPatch(screen, locale, field, value));
+  const isBase = locale === BASE_LOCALE;
+  const translated = translatedCount(screens, locale);
 
   return (
     <aside className="flex w-[292px] shrink-0 flex-col border-l border-l-[var(--hairline)] bg-[var(--chrome-panel)] backdrop-blur-[24px]">
@@ -315,6 +326,25 @@ export function InspectorPanel() {
                     dispatch({ type: "setCanvasDevice", id: device.id });
                 }}
               />
+            </div>
+
+            <div className="flex flex-col gap-[7px]">
+              <FieldLabel>Language</FieldLabel>
+              <SelectRow
+                label="Slide language"
+                value={localeName(locale)}
+                options={LOCALES.map((item) => item.name)}
+                onChange={(name) => {
+                  const next = LOCALES.find((item) => item.name === name);
+                  if (next) dispatch({ type: "setLocale", locale: next.id });
+                }}
+              />
+              {!isBase ? (
+                <p className="text-[9px] leading-[1.5] text-[var(--muted)]">
+                  {translated} of {screens.length} screens translated. Anything
+                  left blank falls back to {localeName(BASE_LOCALE)}.
+                </p>
+              ) : null}
             </div>
 
             <div className="flex flex-col gap-[7px]">
@@ -458,9 +488,9 @@ export function InspectorPanel() {
 
             <input
               aria-label="Brand chip text"
-              value={screen.brandChip}
+              value={text.brandChip}
               disabled={!screen.brandChipVisible}
-              onChange={(event) => patch({ brandChip: event.target.value })}
+              onChange={(event) => setText("brandChip", event.target.value)}
               className="h-[34px] rounded-[7px] border border-[var(--line)] bg-white px-[10px] text-[10px] font-semibold text-[var(--ink)] outline-none focus:border-[var(--purple)] disabled:bg-[#F5F5F7] disabled:text-[var(--muted)]"
             />
           </section>
@@ -488,16 +518,16 @@ export function InspectorPanel() {
 
             <textarea
               aria-label="Headline text"
-              value={screen.headline}
+              value={text.headline}
               rows={2}
-              onChange={(event) => patch({ headline: event.target.value })}
+              onChange={(event) => setText("headline", event.target.value)}
               className="h-[62px] resize-none rounded-[7px] border border-[var(--line)] bg-white p-[10px] text-[11px] leading-[1.3] font-semibold text-[var(--ink)] outline-none focus:border-[var(--purple)]"
             />
 
             <input
               aria-label="Subhead text"
-              value={screen.subhead}
-              onChange={(event) => patch({ subhead: event.target.value })}
+              value={text.subhead}
+              onChange={(event) => setText("subhead", event.target.value)}
               className="h-[34px] rounded-[7px] border border-[var(--line)] bg-white px-[10px] text-[10px] text-[var(--ink)] outline-none focus:border-[var(--purple)]"
             />
 
@@ -517,6 +547,12 @@ export function InspectorPanel() {
                 <span className="text-[10px] text-[var(--ink)]">px</span>
               </div>
             </div>
+
+            {!isBase && !hasTranslation(screen, locale, "headline") ? (
+              <p className="text-[9px] text-[var(--muted)]">
+                Showing {localeName(BASE_LOCALE)} — type to translate.
+              </p>
+            ) : null}
 
             <ValueRow label="Position X">
               <SliderValue

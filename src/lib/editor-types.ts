@@ -22,6 +22,13 @@ export type CanvasMode = "select" | "hand";
 export type InspectorTab = "design" | "animate";
 export type MediaTab = "uploads" | "app-screens";
 
+/** Slide copy that can be localised. App UI is never translated. */
+export type LocalizedText = {
+  headline?: string;
+  subhead?: string;
+  brandChip?: string;
+};
+
 export type MediaAsset = {
   id: string;
   name: string;
@@ -47,6 +54,12 @@ export type Screen = {
   app: AppScreenKind;
   /** An uploaded screenshot shown in the device instead of the mock UI. */
   mediaId: string | null;
+  /**
+   * Per-locale overrides for the slide copy, keyed by locale id. The base
+   * `headline`/`subhead`/`brandChip` fields are the en-US source and the
+   * fallback for any locale without an entry.
+   */
+  translations: Record<string, LocalizedText>;
   /** Headline size in App Store pixels (rendered at ARTBOARD_SCALE). */
   fontSize: number;
   align: Align;
@@ -83,6 +96,8 @@ export type EditorState = {
   canvasDeviceId: string;
   screens: Screen[];
   media: MediaAsset[];
+  /** Locale the slide copy is shown and edited in. */
+  locale: string;
   zoom: number;
   canvasMode: CanvasMode;
   inspectorTab: InspectorTab;

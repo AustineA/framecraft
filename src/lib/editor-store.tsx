@@ -73,6 +73,7 @@ export type Action =
   | { type: "setView"; view: AppView }
   | { type: "setTool"; tool: ToolId }
   | { type: "setCanvasDevice"; id: string }
+  | { type: "setLocale"; locale: string }
   | { type: "selectScreen"; id: string }
   | { type: "addScreen" }
   | { type: "deleteScreen"; id: string }
@@ -121,6 +122,7 @@ function normalize(payload: Partial<EditorState>): Partial<EditorState> {
   );
   return {
     ...payload,
+    locale: payload.locale ?? "en-US",
     screens: payload.screens.map((screen) => {
       const merged = { ...template, ...screen };
       return {
@@ -128,6 +130,7 @@ function normalize(payload: Partial<EditorState>): Partial<EditorState> {
         brandChip: merged.brandChip ?? "HABITLY",
         app: builtIn.get(merged.id) ?? merged.app,
         mediaId: merged.mediaId ?? null,
+        translations: merged.translations ?? {},
         textX: merged.textX ?? 0,
         textY: merged.textY ?? 0,
         brandChipVisible: merged.brandChipVisible ?? true,
@@ -187,6 +190,9 @@ function reducer(state: State, action: Action): State {
 
     case "setCanvasDevice":
       return { ...state, canvasDeviceId: action.id };
+
+    case "setLocale":
+      return { ...state, locale: action.locale };
 
     case "selectScreen":
       return { ...state, selectedScreenId: action.id };
@@ -352,6 +358,7 @@ function persistable(state: State) {
     canvasDeviceId: state.canvasDeviceId,
     screens: state.screens,
     media: state.media,
+    locale: state.locale,
     zoom: state.zoom,
     canvasMode: state.canvasMode,
     inspectorTab: state.inspectorTab,

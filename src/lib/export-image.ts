@@ -13,16 +13,19 @@ function slug(value: string): string {
     .replace(/^-|-$/g, "");
 }
 
-export function fileNameFor(
+/** Path inside the archive. Each locale gets its own folder. */
+export function filePathFor(
   screen: Screen,
   device: ExportDevice,
   format: ExportFormat,
   includeDetail: boolean,
+  locale: string,
 ): string {
   const extension = format === "png" ? "png" : "jpg";
-  return includeDetail
-    ? `${screen.number}-${slug(screen.name)}-${slug(device.name)}-en-US.${extension}`
+  const name = includeDetail
+    ? `${screen.number}-${slug(screen.name)}-${slug(device.name)}.${extension}`
     : `${screen.number}-${slug(device.name)}.${extension}`;
+  return `${locale}/${name}`;
 }
 
 function download(blob: Blob, fileName: string) {
@@ -71,7 +74,8 @@ export async function deliver(
   if (files.length === 0) return;
 
   if (files.length === 1) {
-    download(files[0].blob, files[0].name);
+    // A lone file needs no archive — strip the locale folder from its name.
+    download(files[0].blob, files[0].name.split("/").pop() ?? files[0].name);
     return;
   }
 

@@ -4,7 +4,8 @@ import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { isDark } from "@/lib/color";
-import { exportDevice } from "@/lib/editor-data";
+import { exportDevice, localeName } from "@/lib/editor-data";
+import { resolveText } from "@/lib/localize";
 import {
   useEditor,
   useEditorDispatch,
@@ -14,7 +15,8 @@ import { AppScreen, appScreenBackground } from "./app-screens";
 import { DeviceFrame, frameMetrics } from "./device-frame";
 
 export function PreviewOverlay() {
-  const { screens, selectedScreenId, canvasDeviceId, media } = useEditor();
+  const { screens, selectedScreenId, canvasDeviceId, media, locale } =
+    useEditor();
   const dispatch = useEditorDispatch();
   const cardRefs = useRef(new Map<string, HTMLLIElement>());
 
@@ -70,7 +72,7 @@ export function PreviewOverlay() {
               App Store preview
             </p>
             <p className="text-[10px] text-[var(--muted)]">
-              {deviceName} · English (U.S.)
+              {deviceName} · {localeName(locale)}
             </p>
           </div>
           <button
@@ -114,7 +116,7 @@ export function PreviewOverlay() {
                       dark ? "text-white" : "text-[var(--ink)]"
                     }`}
                   >
-                    {screen.headline}
+                    {resolveText(screen, locale).headline}
                   </span>
 
                   <DeviceFrame

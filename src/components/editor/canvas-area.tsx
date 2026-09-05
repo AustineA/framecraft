@@ -22,7 +22,7 @@ import { ArtboardCard } from "./artboard";
 const BASE_ZOOM = 72;
 
 export function CanvasArea() {
-  const { zoom, canvasMode, canvasDeviceId, media } = useEditor();
+  const { zoom, canvasMode, canvasDeviceId, media, locale } = useEditor();
   const dispatch = useEditorDispatch();
   const screen = useSelectedScreen();
   const scale = zoom / BASE_ZOOM;
@@ -145,6 +145,7 @@ export function CanvasArea() {
             <ArtboardCard
               screen={screen}
               media={media}
+              locale={locale}
               height={artboardHeight}
               editable
               onEdit={(patch) =>

@@ -23,6 +23,7 @@ export const SCREENS: Screen[] = [
     bg: "#CDE7FF",
     app: "today",
     mediaId: null,
+    translations: {},
     fontSize: 72,
     align: "center",
     headlineVisible: true,
@@ -50,6 +51,7 @@ export const SCREENS: Screen[] = [
     bg: "#E0D7FF",
     app: "plan",
     mediaId: null,
+    translations: {},
     fontSize: 72,
     align: "center",
     headlineVisible: true,
@@ -77,6 +79,7 @@ export const SCREENS: Screen[] = [
     bg: "#C9EEF5",
     app: "streak",
     mediaId: null,
+    translations: {},
     fontSize: 72,
     align: "center",
     headlineVisible: true,
@@ -104,6 +107,7 @@ export const SCREENS: Screen[] = [
     bg: "#C8F2DF",
     app: "insights",
     mediaId: null,
+    translations: {},
     fontSize: 72,
     align: "center",
     headlineVisible: true,
@@ -131,6 +135,7 @@ export const SCREENS: Screen[] = [
     bg: "#D8E4FF",
     app: "focus",
     mediaId: null,
+    translations: {},
     fontSize: 72,
     align: "center",
     headlineVisible: true,
@@ -158,6 +163,7 @@ export const SCREENS: Screen[] = [
     bg: "#FFD6E4",
     app: "upgrade",
     mediaId: null,
+    translations: {},
     fontSize: 72,
     align: "center",
     headlineVisible: true,
@@ -389,6 +395,34 @@ export const MEDIA_ASSET_CLASSES = [
  * Light grounds with dark headlines read best in the App Store grid, so the
  * presets stay above ~85% luminance while keeping real chroma.
  */
+/** App Store Connect localisations offered for the slide copy. */
+export const LOCALES: { id: string; name: string }[] = [
+  { id: "en-US", name: "English (U.S.)" },
+  { id: "en-GB", name: "English (U.K.)" },
+  { id: "es-ES", name: "Spanish (Spain)" },
+  { id: "es-MX", name: "Spanish (Mexico)" },
+  { id: "fr-FR", name: "French" },
+  { id: "de-DE", name: "German" },
+  { id: "it-IT", name: "Italian" },
+  { id: "pt-BR", name: "Portuguese (Brazil)" },
+  { id: "nl-NL", name: "Dutch" },
+  { id: "tr-TR", name: "Turkish" },
+  { id: "ru-RU", name: "Russian" },
+  { id: "ar-SA", name: "Arabic" },
+  { id: "hi-IN", name: "Hindi" },
+  { id: "id-ID", name: "Indonesian" },
+  { id: "ja-JP", name: "Japanese" },
+  { id: "ko-KR", name: "Korean" },
+  { id: "zh-Hans", name: "Chinese (Simplified)" },
+  { id: "zh-Hant", name: "Chinese (Traditional)" },
+];
+
+export const BASE_LOCALE = "en-US";
+
+export function localeName(id: string): string {
+  return LOCALES.find((locale) => locale.id === id)?.name ?? id;
+}
+
 export const BRIGHT_BACKGROUNDS: { name: string; hex: string }[] = [
   { name: "Sky", hex: "#CDE7FF" },
   { name: "Azure", hex: "#D8E4FF" },
@@ -425,6 +459,7 @@ export const INITIAL_STATE: EditorState = {
   canvasDeviceId: "iphone-69",
   screens: SCREENS,
   media: [],
+  locale: "en-US",
   zoom: 72,
   canvasMode: "select",
   inspectorTab: "design",

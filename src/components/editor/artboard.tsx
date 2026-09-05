@@ -3,6 +3,7 @@ import { BadgeCheck, MessageSquare, Sparkles } from "lucide-react";
 import { artboardGradient, isDark } from "@/lib/color";
 import { ARTBOARD_SCALE, fontStack } from "@/lib/editor-data";
 import type { Align, MediaAsset, Screen } from "@/lib/editor-types";
+import { resolveText, textPatch } from "@/lib/localize";
 
 import { AppScreen, appScreenBackground } from "./app-screens";
 import { DeviceFrame, frameMetrics } from "./device-frame";
@@ -36,6 +37,7 @@ const ACCENT_SHAPE: Record<string, string> = {
 export function ArtboardCard({
   screen,
   media = [],
+  locale = "en-US",
   width = 392,
   height = 768,
   editable = false,
@@ -44,6 +46,8 @@ export function ArtboardCard({
   screen: Screen;
   /** Library the screen's `mediaId` resolves against. */
   media?: MediaAsset[];
+  /** Locale the slide copy is rendered in. */
+  locale?: string;
   width?: number;
   height?: number;
   /** Enables in-place editing of the headline and subhead. */
@@ -57,6 +61,7 @@ export function ArtboardCard({
   const has = (id: string) => screen.decorations.includes(id);
   const image = media.find((asset) => asset.id === screen.mediaId)?.dataUrl;
   const commit = (patch: Partial<Screen>) => onEdit?.(patch);
+  const text = resolveText(screen, locale);
 
   return (
     <div
@@ -88,8 +93,10 @@ export function ArtboardCard({
           <EditableText
             label="Brand chip"
             editable={editable}
-            value={screen.brandChip}
-            onCommit={(brandChip) => commit({ brandChip })}
+            value={text.brandChip}
+            onCommit={(value) =>
+              commit(textPatch(screen, locale, "brandChip", value))
+            }
             className="text-[8px] font-bold tracking-[0.8px] whitespace-nowrap text-[var(--purple)]"
           />
         </div>
@@ -107,8 +114,10 @@ export function ArtboardCard({
             label="Headline"
             multiline
             editable={editable}
-            value={screen.headline}
-            onCommit={(headline) => commit({ headline })}
+            value={text.headline}
+            onCommit={(value) =>
+              commit(textPatch(screen, locale, "headline", value))
+            }
             className={`w-full leading-none font-bold tracking-[-1.1px] whitespace-pre-line ${textAlign} ${
               dark ? "text-white" : "text-[var(--ink)]"
             }`}
@@ -117,8 +126,10 @@ export function ArtboardCard({
           <EditableText
             label="Subhead"
             editable={editable}
-            value={screen.subhead}
-            onCommit={(subhead) => commit({ subhead })}
+            value={text.subhead}
+            onCommit={(value) =>
+              commit(textPatch(screen, locale, "subhead", value))
+            }
             className={`w-full text-[12px] font-medium ${textAlign} ${
               dark ? "text-[#FFFFFFB0]" : "text-[#515154]"
             }`}
