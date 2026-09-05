@@ -2,25 +2,49 @@ import type { ReactNode } from "react";
 
 import { ISLAND_PT, type DeviceKind, phoneSpec, pxPerMm } from "@/lib/editor-data";
 
-/** Titanium and aluminium finishes: the rim carries the colour. */
-const FINISH: Record<string, { rim: string; button: string }> = {
+/**
+ * Device finishes.
+ *
+ * Metal reads as metal because of alternating light and dark bands, not a
+ * smooth ramp — the rail picks up a highlight where it curves away at each
+ * edge, so every finish alternates specular and shadow across its width.
+ * `edge` is the hairline where the rail meets the glass, `antenna` the
+ * lighter breaks in the band.
+ */
+const FINISH: Record<
+  string,
+  { rail: string; button: string; edge: string; antenna: string }
+> = {
   "Black Titanium": {
-    rim: "linear-gradient(150deg,#6E6E73 0%,#1B1B1D 22%,#0E0E0F 50%,#1B1B1D 78%,#7A7A80 100%)",
-    button: "#3A3A3C",
+    // Simulator art is a near-flat #2A2A2B rail with a 2px bright outer
+    // edge, so the gradient stays tight and the highlight does the work.
+    rail: "linear-gradient(150deg,#3A3A3C 0%,#2A2A2B 26%,#232325 52%,#2D2D2F 76%,#3E3E41 100%)",
+    button: "linear-gradient(180deg,#3C3C3F 0%,#262628 52%,#333336 100%)",
+    edge: "rgba(255,255,255,0.36)",
+    antenna: "rgba(150,152,158,0.5)",
   },
   "Natural Titanium": {
-    rim: "linear-gradient(150deg,#E4E0D8 0%,#9A958C 22%,#7B766E 50%,#9A958C 78%,#EDE9E1 100%)",
-    button: "#A9A49B",
+    rail: "linear-gradient(150deg,#D8D3C9 0%,#B5B0A6 26%,#A19C93 52%,#BCB7AD 76%,#DED9CF 100%)",
+    button: "linear-gradient(180deg,#C6C1B7 0%,#A5A097 52%,#B8B3A9 100%)",
+    edge: "rgba(255,255,255,0.55)",
+    antenna: "rgba(255,255,255,0.5)",
   },
   "White Titanium": {
-    rim: "linear-gradient(150deg,#FFFFFF 0%,#D6D3CD 22%,#B8B5AF 50%,#D6D3CD 78%,#FFFFFF 100%)",
-    button: "#CFCCC6",
+    rail: "linear-gradient(150deg,#F0EEEA 0%,#DCD9D4 26%,#CBC8C2 52%,#E0DDD8 76%,#F4F2EE 100%)",
+    button: "linear-gradient(180deg,#E6E4E0 0%,#CFCCC6 52%,#DDDBD6 100%)",
+    edge: "rgba(255,255,255,0.7)",
+    antenna: "rgba(255,255,255,0.6)",
   },
   "Desert Titanium": {
-    rim: "linear-gradient(150deg,#F0DCC0 0%,#B99A72 22%,#9A7C57 50%,#B99A72 78%,#F5E4CC 100%)",
-    button: "#C2A47D",
+    rail: "linear-gradient(150deg,#CFB694 0%,#B99A72 26%,#A78B64 52%,#C0A379 76%,#D8C0A0 100%)",
+    button: "linear-gradient(180deg,#C4A57D 0%,#A78B64 52%,#B99A72 100%)",
+    edge: "rgba(255,244,228,0.5)",
+    antenna: "rgba(255,244,228,0.5)",
   },
 };
+
+/** Antenna breaks in the rail, as a fraction of the body's height. */
+const ANTENNA_AT = [0.085, 0.915];
 
 /** Status bar height in points — iPads carry a much shorter one. */
 const STATUS_PT: Record<DeviceKind, number> = { iphone: 54, ipad: 24 };
@@ -62,9 +86,16 @@ export function frameMetrics(
   const scale = pxPerMm(spec.kind, artboardWidth, artboardHeight);
   const bezel = spec.bezelMm * scale;
   const bodyWidth = spec.mmW * scale;
-  const bodyHeight = spec.mmH * scale;
   const screenWidth = bodyWidth - bezel * 2;
   const ptPerPx = screenWidth / spec.ptW;
+
+  /*
+   * The screen takes the display's own aspect rather than the body's minus a
+   * bezel: a screenshot is exactly ptW x ptH, so any other shape would crop
+   * or squash it. The body height follows from the screen plus its border.
+   */
+  const screenHeight = screenWidth * (spec.ptH / spec.ptW);
+  const bodyHeight = screenHeight + bezel * 2;
 
   return {
     spec,
@@ -74,7 +105,7 @@ export function frameMetrics(
     bodyWidth,
     bodyHeight,
     screenWidth,
-    screenHeight: bodyHeight - bezel * 2,
+    screenHeight,
     screenRadius: spec.radiusPt * ptPerPx,
     statusHeight: STATUS_PT[spec.kind] * ptPerPx,
     island:
@@ -198,7 +229,10 @@ export function DeviceFrame({
   children: ReactNode;
 }) {
   const finish = FINISH[color] ?? FINISH["Black Titanium"];
-  const rimWidth = Math.max(1.5, metrics.bezel * 0.26);
+  // Simulator art measures 11px of rail against 15px of black, so the metal
+  // takes 42% of the border. Weighting it the other way was what made the
+  // frame read as one heavy black band instead of metal around glass.
+  const rimWidth = Math.max(1, metrics.bezel * 0.423);
   const thickness = Math.max(2, metrics.bezel * 0.35);
   const inset = Math.max(1.5, metrics.bezel * 0.28);
 
@@ -218,16 +252,18 @@ export function DeviceFrame({
                   left: metrics.bodyWidth * button.at,
                   width: metrics.bodyWidth * button.length,
                   height: thickness,
-                  background: finish.button,
+                  backgroundImage: finish.button,
                   borderRadius: thickness,
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.35)",
                 }
               : {
                   [button.edge]: -inset,
                   top: metrics.bodyHeight * button.at,
                   height: metrics.bodyHeight * button.length,
                   width: thickness,
-                  background: finish.button,
+                  backgroundImage: finish.button,
                   borderRadius: thickness,
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.35)",
                 }
           }
         />
@@ -240,11 +276,37 @@ export function DeviceFrame({
           height: metrics.bodyHeight,
           padding: rimWidth,
           borderRadius: metrics.screenRadius + metrics.bezel,
-          backgroundImage: finish.rim,
+          backgroundImage: finish.rail,
+          // A hairline of light on the outer curve, and a dark seat under it,
+          // which is what separates milled metal from a flat grey band.
+          boxShadow: [
+            `inset 0 0 0 ${Math.max(0.6, rimWidth * 0.19).toFixed(2)}px ${finish.edge}`,
+            "inset 0 0.5px 0.5px rgba(255,255,255,0.10)",
+            "0 0 0 0.5px rgba(0,0,0,0.45)",
+          ].join(", "),
         }}
       >
+        {/* Antenna breaks: the rail is not one continuous piece of metal. */}
+        {metrics.kind === "iphone"
+          ? ANTENNA_AT.map((at) => (
+              <span
+                key={at}
+                aria-hidden
+                className="pointer-events-none absolute"
+                style={{
+                  left: -0.5,
+                  right: -0.5,
+                  top: metrics.bodyHeight * at,
+                  height: Math.max(0.75, rimWidth * 0.4),
+                  background: finish.antenna,
+                  opacity: 0.75,
+                }}
+              />
+            ))
+          : null}
+
         <div
-          className="h-full w-full bg-[#0B0B0C]"
+          className="h-full w-full bg-[#020203]"
           style={{
             padding: metrics.bezel - rimWidth,
             borderRadius: metrics.screenRadius + metrics.bezel - rimWidth,
@@ -255,6 +317,8 @@ export function DeviceFrame({
             style={{
               borderRadius: metrics.screenRadius,
               backgroundColor: screenBackground,
+              // The glass sits slightly proud of the black border.
+              boxShadow: "inset 0 0 0 0.5px rgba(255,255,255,0.07)",
             }}
           >
             {/*

@@ -261,7 +261,15 @@ export type PhoneSpec = {
 /** Dynamic Island, points. iPads have none. */
 export const ISLAND_PT = { width: 125, height: 36.67, top: 11 };
 
-const IPHONE = { kind: "iphone", bezelMm: 2.45, radiusPt: 55 } as const;
+/*
+ * `bezelMm` is the whole border outside the display — metal rail plus black
+ * inner band. Measured off the iOS Simulator's own device art: the border is
+ * 3.316% of body width, which is 2.59mm on a 78mm body. The body height is
+ * then derived from it and the display's aspect (see `frameMetrics`), and
+ * lands within 0.3% of every published body height, which is the check that
+ * this number is right.
+ */
+const IPHONE = { kind: "iphone", bezelMm: 2.59, radiusPt: 55 } as const;
 const IPAD_PRO = { kind: "ipad", bezelMm: 8.5, radiusPt: 30 } as const;
 
 export const PHONE_FRAMES: PhoneSpec[] = [
@@ -298,6 +306,16 @@ function specByName(name: string): PhoneSpec {
 }
 
 /**
+ * Body height as the frame actually draws it: the display's own aspect plus
+ * its border. Within ~1% of the published body, and it keeps a screenshot
+ * from being squashed to fit a slightly-off box.
+ */
+export function bodyHeightMm(spec: PhoneSpec): number {
+  const screenWidth = spec.mmW - spec.bezelMm * 2;
+  return screenWidth * (spec.ptH / spec.ptW) + spec.bezelMm * 2;
+}
+
+/**
  * Pixels per millimetre for a device family on a given artboard.
  *
  * Fitting on both axes matters because the artboard's shape follows the
@@ -313,7 +331,9 @@ export function pxPerMm(
   const reference = specByName(name);
   return Math.min(
     (artboardWidth * widthShare) / reference.mmW,
-    (artboardHeight * heightShare) / reference.mmH,
+    // The drawn body follows the display's aspect, so fit against that
+    // height rather than the published one — see `frameMetrics`.
+    (artboardHeight * heightShare) / bodyHeightMm(reference),
   );
 }
 
