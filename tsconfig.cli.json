@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "outDir": "dist/cli",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "sourceMap": false,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "cli/**/*.ts",
+    "src/lib/editor-data.ts",
+    "src/lib/editor-types.ts",
+    "src/lib/localize.ts",
+    "src/lib/templates.ts",
+    "src/lib/projects.ts",
+    "src/lib/project-file.ts"
+  ]
+}

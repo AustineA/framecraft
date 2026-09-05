@@ -1,36 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Framecraft
 
-## Getting Started
+An App Store screenshot editor. Start from a category template, drop your app
+screens into a device frame, translate the copy, and export every size App
+Store Connect asks for — from the browser or the terminal.
 
-First, run the development server:
+## Install
 
 ```bash
+git clone https://github.com/AustineA/framecraft
+cd framecraft
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What you get
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Six templates**, one per top App Store category — health, finance,
+  productivity, social, photo and shopping — each with written copy and a
+  bright palette.
+- **Thirteen device frames**, nine iPhone and four iPad, drawn to real
+  hardware proportions in four finishes.
+- **Six export sizes**, every dimension App Store Connect accepts:
 
-## Learn More
+  | Device | Pixels | Device | Pixels |
+  | --- | --- | --- | --- |
+  | iPhone 6.9″ | 1320×2868 | iPhone 5.5″ | 1242×2208 |
+  | iPhone 6.5″ | 1284×2778 | iPad 13″ | 2064×2752 |
+  | iPhone 6.3″ | 1206×2622 | iPad 12.9″ | 2048×2732 |
 
-To learn more about Next.js, take a look at the following resources:
+- **Eighteen locales** for slide copy. Translate per screen and per field;
+  anything untranslated falls back to English, and exports land in
+  per-locale folders (`en-US/`, `fr-FR/`).
+- **Your own fonts.** Bundled stacks plus every font installed on your
+  machine, searchable (Chromium-family browsers, with your permission).
+- Editing you would expect: text edited directly on the canvas, undo and
+  redo 50 steps deep, eighteen bright background presets, and free
+  positioning of the device and text.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Projects autosave to your browser. Templates are a starting point, not a
+constraint — every screen can be repainted, re-framed and rewritten.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## CLI (optional)
 
-## Deploy on Vercel
+Every editor feature is also a command, so an agent can create a project,
+write and translate copy, and export production-ready PNGs headlessly.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+From your clone:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run install-cli
+```
+
+Or without cloning:
+
+```bash
+npx github:AustineA/framecraft install
+```
+
+Either way you get a `framecraft` command:
+
+```bash
+framecraft init --template finance --name Ledger
+framecraft set --screen 1 --headline "Every account, one clear view."
+framecraft translate --locale fr-FR --from fr.json
+framecraft export --out ./shots
+```
+
+Commands act on the `framecraft.json` in the current directory, or the
+nearest parent that has one — no path to pass around. Read state with
+`--json` on any read command. See [docs/CLI.md](docs/CLI.md) for the full
+reference.
+
+```bash
+framecraft status      # where it installed from
+framecraft uninstall   # remove it
+```
+
+## Moving work between the two
+
+A project is one JSON file, and both sides read and write it:
+
+| Direction | How |
+| --- | --- |
+| CLI → editor | Start screen → **Open file** |
+| Editor → CLI | Project menu → **Download file** |
+
+Screens, translations, fonts, frames, positions, uploaded media and export
+settings all survive the trip.
+
+## Requirements
+
+- Node.js 20.9+ (what Next.js 16 requires). The installed command pins the
+  Node it was installed with, so switching Node versions — with mise, nvm,
+  volta or asdf — does not hide it.
+- A Chromium-family browser for export — Chrome, Chromium, Brave, Edge or
+  Vivaldi, detected automatically
+
+## License
+
+MIT

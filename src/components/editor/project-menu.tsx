@@ -4,13 +4,15 @@ import {
   Check,
   ChevronDown,
   Copy,
+  Download,
   Pencil,
   Plus,
   Trash2,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { useProjects } from "@/lib/editor-store";
+import { useEditor, useProjects } from "@/lib/editor-store";
+import { projectFileName, toProjectFile } from "@/lib/project-file";
 import { savedLabel } from "@/lib/projects";
 
 export function ProjectMenu() {
@@ -26,6 +28,7 @@ export function ProjectMenu() {
     deleteProject,
   } = useProjects();
 
+  const editor = useEditor();
   const [open, setOpen] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [draft, setDraft] = useState("");
@@ -54,6 +57,40 @@ export function ProjectMenu() {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
+
+  /** Writes the same format the CLI reads, so work can move either way. */
+  const downloadFile = () => {
+    const name = active?.name ?? "Untitled";
+    const file = toProjectFile(name, {
+      tool: editor.tool,
+      selectedScreenId: editor.selectedScreenId,
+      canvasDeviceId: editor.canvasDeviceId,
+      screens: editor.screens,
+      media: editor.media,
+      locale: editor.locale,
+      zoom: editor.zoom,
+      canvasMode: editor.canvasMode,
+      inspectorTab: editor.inspectorTab,
+      mediaTab: editor.mediaTab,
+      activeTextStyleId: editor.activeTextStyleId,
+      previewOpen: false,
+      exportOpen: false,
+      exportDeviceIds: editor.exportDeviceIds,
+      exportFormat: editor.exportFormat,
+      exportNaming: editor.exportNaming,
+    });
+
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(file, null, 2)], { type: "application/json" }),
+    );
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = projectFileName(name);
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  };
 
   const commitRename = () => {
     if (draft.trim()) renameProject(activeId, draft);
@@ -155,6 +192,14 @@ export function ProjectMenu() {
                   icon: Copy,
                   onClick: () => {
                     duplicateProject(activeId);
+                    setOpen(false);
+                  },
+                },
+                {
+                  label: "Download file",
+                  icon: Download,
+                  onClick: () => {
+                    downloadFile();
                     setOpen(false);
                   },
                 },

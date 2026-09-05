@@ -1,10 +1,18 @@
 "use client";
 
-import { ArrowRight, Clock, Plus, Sparkles, Trash2 } from "lucide-react";
-import { useState } from "react";
+import {
+  ArrowRight,
+  Clock,
+  FolderOpen,
+  Plus,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
+import { useRef, useState } from "react";
 
 import { artboardHeightFor, exportDevice } from "@/lib/editor-data";
 import { useProjects } from "@/lib/editor-store";
+import { parseProjectFile } from "@/lib/project-file";
 import { savedLabel } from "@/lib/projects";
 import { TEMPLATES, type Template } from "@/lib/templates";
 
@@ -47,6 +55,23 @@ function TemplatePreview({ template }: { template: Template }) {
 export function StartScreen() {
   const { projects, newProject, switchProject, deleteProject } = useProjects();
   const [pending, setPending] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  /** Opens a project file written by the CLI — or downloaded from here. */
+  const openFile = async (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file) return;
+    setImportError(null);
+    try {
+      const parsed = parseProjectFile(JSON.parse(await file.text()));
+      newProject(parsed.name, parsed.project);
+    } catch (error) {
+      setImportError(
+        error instanceof Error ? error.message : "That file could not be read.",
+      );
+    }
+  };
 
   const start = (template: Template) => {
     // Rendering six artboards makes the click feel heavy without a cue.
@@ -92,15 +117,41 @@ export function StartScreen() {
                 Six sets, written for the categories that sell the most.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => newProject()}
-              className="flex h-[38px] items-center gap-2 rounded-[9px] border border-[#0000001A] bg-white px-4 text-[13px] font-semibold text-[var(--ink)] transition-colors hover:bg-[#F5F5F7]"
-            >
-              <Plus className="size-[15px]" />
-              Blank project
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileInput.current?.click()}
+                className="flex h-[38px] items-center gap-2 rounded-[9px] border border-[#0000001A] bg-white px-4 text-[13px] font-semibold text-[var(--ink)] transition-colors hover:bg-[#F5F5F7]"
+              >
+                <FolderOpen className="size-[15px]" />
+                Open file
+              </button>
+              <button
+                type="button"
+                onClick={() => newProject()}
+                className="flex h-[38px] items-center gap-2 rounded-[9px] border border-[#0000001A] bg-white px-4 text-[13px] font-semibold text-[var(--ink)] transition-colors hover:bg-[#F5F5F7]"
+              >
+                <Plus className="size-[15px]" />
+                Blank project
+              </button>
+              <input
+                ref={fileInput}
+                type="file"
+                accept="application/json,.json"
+                hidden
+                onChange={(event) => {
+                  void openFile(event.target.files);
+                  event.target.value = "";
+                }}
+              />
+            </div>
           </div>
+
+          {importError ? (
+            <p role="alert" className="text-[12px] text-[#D0342C]">
+              {importError}
+            </p>
+          ) : null}
 
           <ul className="grid justify-center gap-7 [grid-template-columns:repeat(auto-fill,268px)]">
             {TEMPLATES.map((item) => (
