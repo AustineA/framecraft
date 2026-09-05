@@ -126,6 +126,10 @@ export function PreviewOverlay() {
                       screen.app,
                       frameMetrics(screen.deviceFrame, 262, cardHeight).kind,
                     )}
+                    chrome={screen.deviceChrome}
+                    fillScreen={Boolean(
+                      media.find((asset) => asset.id === screen.mediaId),
+                    )}
                     className="drop-shadow-[0_10px_20px_#00000033]"
                   >
                     <AppScreen

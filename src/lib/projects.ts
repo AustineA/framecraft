@@ -85,6 +85,20 @@ export function createProject(name: string, data?: ProjectData): ProjectRecord {
   return blank(name, data);
 }
 
+/**
+ * Name for a project started from a template.
+ *
+ * Stamped so several runs at the same template stay tellable apart, and
+ * marked a copy so the template's own name is not mistaken for it.
+ */
+export function templateCopyName(templateName: string, now = new Date()): string {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  const stamp =
+    `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}` +
+    `-${pad(now.getHours())}${pad(now.getMinutes())}`;
+  return `${templateName}-copy-${stamp}`;
+}
+
 export function duplicateOf(project: ProjectRecord): ProjectRecord {
   return {
     id: newId(),

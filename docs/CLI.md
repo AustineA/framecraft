@@ -171,7 +171,7 @@ framecraft set --screen all --bg "#C8F2DF" --font "System Rounded"
 | Group | Flags |
 | --- | --- |
 | Text | `--headline` `--subhead` `--brand-chip` |
-| Visibility | `--show-headline` `--hide-headline` `--show-chip` `--hide-chip` `--show-device` `--hide-device` |
+| Visibility | `--show-headline` `--hide-headline` `--show-chip` `--hide-chip` `--show-device` `--hide-device` `--show-status` `--hide-status` |
 | Type | `--font <name>` `--font-size <8-160>` `--align left\|center\|right` |
 | Canvas | `--bg <#hex>` `--app <kind>` `--screen-name <name>` |
 | Device | `--frame <name>` `--device-color <name>` `--device-scale <40-120>` `--device-x <px>` `--device-y <px>` |

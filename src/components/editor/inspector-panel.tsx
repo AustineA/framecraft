@@ -421,6 +421,23 @@ export function InspectorPanel() {
               />
             </ValueRow>
 
+            <ValueRow label="Status bar">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={screen.deviceChrome}
+                aria-label="Show status bar and indicators"
+                onClick={() => patch({ deviceChrome: !screen.deviceChrome })}
+                className={`flex h-[18px] w-[32px] items-center rounded-full p-[3px] transition-colors ${
+                  screen.deviceChrome
+                    ? "justify-end bg-[#34C759]"
+                    : "justify-start bg-[#C7C7CC]"
+                }`}
+              >
+                <span className="size-[12px] rounded-full bg-white" />
+              </button>
+            </ValueRow>
+
             <ValueRow label="Color">
               <SelectRow
                 label="Device colour"

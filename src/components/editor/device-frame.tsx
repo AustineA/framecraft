@@ -181,6 +181,8 @@ export function DeviceFrame({
   metrics,
   color = "Black Titanium",
   screenBackground = "#000000",
+  chrome = true,
+  fillScreen = false,
   className = "",
   children,
 }: {
@@ -188,6 +190,10 @@ export function DeviceFrame({
   color?: string;
   /** Fills the status-bar safe area so it matches the app screen. */
   screenBackground?: string;
+  /** Draw the iOS status bar, Dynamic Island and home indicator. */
+  chrome?: boolean;
+  /** Let content run edge to edge, under the chrome instead of below it. */
+  fillScreen?: boolean;
   className?: string;
   children: ReactNode;
 }) {
@@ -251,17 +257,23 @@ export function DeviceFrame({
               backgroundColor: screenBackground,
             }}
           >
-            {/* Content sits below the status bar, as it does under iOS. */}
+            {/*
+              Mock app UI is inset below the status bar, as it is under iOS.
+              A real screenshot already includes its own, so it fills the
+              screen and the chrome sits on top of it.
+            */}
             <div
               className="h-full w-full"
-              style={{ paddingTop: metrics.statusHeight }}
+              style={{
+                paddingTop: chrome && !fillScreen ? metrics.statusHeight : 0,
+              }}
             >
               {children}
             </div>
 
-            <StatusBar metrics={metrics} />
+            {chrome ? <StatusBar metrics={metrics} /> : null}
 
-            {metrics.island ? (
+            {chrome && metrics.island ? (
               <span
                 aria-hidden
                 className="absolute left-1/2 z-[4] -translate-x-1/2 rounded-full bg-black"
@@ -273,15 +285,17 @@ export function DeviceFrame({
               />
             ) : null}
 
-            <span
-              aria-hidden
-              className="absolute left-1/2 z-[4] -translate-x-1/2 rounded-full bg-[#1D1D1F]/35"
-              style={{
-                bottom: HOME_INDICATOR_PT.bottom * metrics.ptPerPx,
-                width: HOME_INDICATOR_PT.width * metrics.ptPerPx,
-                height: HOME_INDICATOR_PT.height * metrics.ptPerPx,
-              }}
-            />
+            {chrome ? (
+              <span
+                aria-hidden
+                className="absolute left-1/2 z-[4] -translate-x-1/2 rounded-full bg-[#1D1D1F]/35"
+                style={{
+                  bottom: HOME_INDICATOR_PT.bottom * metrics.ptPerPx,
+                  width: HOME_INDICATOR_PT.width * metrics.ptPerPx,
+                  height: HOME_INDICATOR_PT.height * metrics.ptPerPx,
+                }}
+              />
+            ) : null}
           </div>
         </div>
       </div>

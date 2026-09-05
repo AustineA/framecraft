@@ -65,6 +65,8 @@ export type Screen = {
   align: Align;
   headlineVisible: boolean;
   deviceVisible: boolean;
+  /** iOS chrome drawn over the screen: status bar, island, home indicator. */
+  deviceChrome: boolean;
   deviceFrame: string;
   deviceColor: string;
   /** Device scale as a percentage. */

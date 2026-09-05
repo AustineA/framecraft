@@ -42,3 +42,6 @@ next-env.d.ts
 
 # CLI build output
 /dist
+
+# CLI render build output
+/.next-framecraft/

@@ -166,6 +166,8 @@ export function ArtboardCard({
             metrics={metrics}
             color={screen.deviceColor}
             screenBackground={appScreenBackground(screen.app, metrics.kind)}
+            chrome={screen.deviceChrome}
+            fillScreen={Boolean(image)}
             className={
               has("shadow")
                 ? "drop-shadow-[0_28px_44px_#002A6659]"

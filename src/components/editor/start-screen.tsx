@@ -13,7 +13,7 @@ import { useRef, useState } from "react";
 import { artboardHeightFor, exportDevice } from "@/lib/editor-data";
 import { useProjects } from "@/lib/editor-store";
 import { parseProjectFile } from "@/lib/project-file";
-import { savedLabel } from "@/lib/projects";
+import { savedLabel, templateCopyName } from "@/lib/projects";
 import { TEMPLATES, type Template } from "@/lib/templates";
 
 import { ArtboardCard } from "./artboard";
@@ -77,7 +77,7 @@ export function StartScreen() {
     // Rendering six artboards makes the click feel heavy without a cue.
     setPending(template.id);
     requestAnimationFrame(() =>
-      newProject(template.name, template.data),
+      newProject(templateCopyName(template.name), template.data, true),
     );
   };
 

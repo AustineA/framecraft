@@ -170,6 +170,15 @@ function findAppRoot(): string {
  * A production build is required for the spawned case.
  */
 /** Runs a command to completion, failing loudly with its own output. */
+/**
+ * Build directory for CLI renders.
+ *
+ * Kept separate from `.next` so an export cannot clobber the cache of a
+ * `next dev` the user has running.
+ */
+const CLI_DIST_DIR = ".next-framecraft";
+const renderEnv = { ...process.env, FRAMECRAFT_DIST_DIR: CLI_DIST_DIR };
+
 function runToCompletion(
   command: string,
   args: string[],
@@ -177,7 +186,7 @@ function runToCompletion(
   label: string,
 ): Promise<void> {
   return new Promise((resolveRun, rejectRun) => {
-    const child = spawn(command, args, { cwd, stdio: "ignore" });
+    const child = spawn(command, args, { cwd, stdio: "ignore", env: renderEnv });
     child.on("error", (error) =>
       rejectRun(new CliError(`${label} could not start: ${error.message}`)));
     child.on("close", (code) =>
@@ -199,7 +208,7 @@ async function startServer(
   const root = findAppRoot();
   // Rendering needs a production build. Making one on demand means a fresh
   // clone can export immediately, with no separate build step to remember.
-  if (!existsSync(join(root, ".next"))) {
+  if (!existsSync(join(root, CLI_DIST_DIR))) {
     onBuild?.();
     await runToCompletion("npx", ["next", "build"], root, "next build");
   }
@@ -208,7 +217,7 @@ async function startServer(
   const child: ChildProcess = spawn(
     "npx",
     ["next", "start", "-p", String(port)],
-    { cwd: root, stdio: "ignore", detached: false },
+    { cwd: root, stdio: "ignore", detached: false, env: renderEnv },
   );
 
   const url = `http://127.0.0.1:${port}`;

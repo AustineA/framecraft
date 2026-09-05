@@ -227,6 +227,8 @@ function applySet(screen: Screen, flags: Flags, locale: string): Screen {
   if (bool(flags, "show-chip")) next.brandChipVisible = true;
   if (bool(flags, "hide-device")) next.deviceVisible = false;
   if (bool(flags, "show-device")) next.deviceVisible = true;
+  if (bool(flags, "hide-status")) next.deviceChrome = false;
+  if (bool(flags, "show-status")) next.deviceChrome = true;
 
   return next;
 }
@@ -239,6 +241,7 @@ const SET_FLAGS = [
   "name", "bg", "app", "font", "size", "align", "frame", "device-color",
   "scale", "x", "y", "text-x", "text-y", "hide-headline", "show-headline",
   "hide-chip", "show-chip", "hide-device", "show-device",
+  "hide-status", "show-status",
 ] as const;
 
 const COMMAND_FLAGS: Record<string, readonly string[]> = {

@@ -39,7 +39,7 @@ EDITING
   set --screen <n|id|all> [options]
       Text        --headline --subhead --brand-chip
       Visibility  --show-headline --hide-headline --show-chip --hide-chip
-                  --show-device --hide-device
+                  --show-device --hide-device --show-status --hide-status
       Type        --font <name> --font-size <px> --align left|center|right
       Canvas      --bg <#hex> --app <kind> --screen-name <name>
       Device      --frame <name> --device-color <name> --device-scale <40-120>

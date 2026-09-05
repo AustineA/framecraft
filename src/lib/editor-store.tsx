@@ -134,6 +134,7 @@ function normalize(payload: Partial<EditorState>): Partial<EditorState> {
         textX: merged.textX ?? 0,
         textY: merged.textY ?? 0,
         brandChipVisible: merged.brandChipVisible ?? true,
+        deviceChrome: merged.deviceChrome ?? true,
         decorations: merged.decorations ?? [],
         accentShape: merged.accentShape ?? null,
         deviceFrame: DEVICE_FRAMES.includes(merged.deviceFrame)
@@ -371,7 +372,7 @@ function persistable(state: State) {
 }
 
 const ProjectsContext = createContext<{
-  newProject: (name?: string, data?: ProjectData) => void;
+  newProject: (name?: string, data?: ProjectData, fromTemplate?: boolean) => void;
   goToStart: () => void;
   switchProject: (id: string) => void;
   renameProject: (id: string, name: string) => void;
@@ -382,6 +383,14 @@ const ProjectsContext = createContext<{
 export function EditorProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const store = useRef<ProjectStore | null>(null);
+  /**
+   * A project opened from a template but not yet edited.
+   *
+   * Nothing is written for it, so browsing templates does not fill the start
+   * screen with untouched copies. The first real change clears this and the
+   * project saves from then on.
+   */
+  const pristine = useRef<{ id: string; payload: string | null } | null>(null);
 
   // Load after mount so server and client first render agree.
   useEffect(() => {
@@ -403,6 +412,18 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const current = store.current;
     if (!payload || !current) return;
+
+    // Untouched template copy: hold it in memory only. The first payload
+    // after loading defines "unchanged"; anything different is a real edit.
+    if (pristine.current?.id === current.activeId) {
+      if (pristine.current.payload === null) {
+        pristine.current.payload = payload;
+        return;
+      }
+      if (pristine.current.payload === payload) return;
+      pristine.current = null;
+    }
+
     const savedAt = Date.now();
     const next: ProjectStore = {
       ...current,
@@ -445,21 +466,35 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     };
 
     return {
-      newProject: (name?: string, data?: ProjectData) => {
+      newProject: (name?: string, data?: ProjectData, fromTemplate = false) => {
         const current = store.current;
         if (!current) return;
         const project = createProject(
           name ?? `Project ${current.projects.length + 1}`,
           data,
         );
-        apply(
-          {
-            activeId: project.id,
-            view: "editor",
-            projects: [...current.projects, project],
-          },
-          project,
-        );
+
+        const next: ProjectStore = {
+          activeId: project.id,
+          view: "editor",
+          projects: [...current.projects, project],
+        };
+
+        if (fromTemplate) {
+          // Held back from storage until the first edit.
+          pristine.current = { id: project.id, payload: null };
+          store.current = next;
+          dispatch({
+            type: "projectLoaded",
+            projects: next.projects.map(meta),
+            activeId: next.activeId,
+            view: next.view,
+            data: project.data,
+          });
+          return;
+        }
+
+        apply(next, project);
       },
       switchProject: (id: string) => {
         const current = store.current;
@@ -471,7 +506,17 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       goToStart: () => {
         const current = store.current;
         if (!current) return;
-        apply({ ...current, view: "start" });
+
+        // An untouched template copy was never saved; drop it on the way out.
+        const dropped = pristine.current?.id;
+        pristine.current = null;
+        apply({
+          ...current,
+          view: "start",
+          projects: dropped
+            ? current.projects.filter((project) => project.id !== dropped)
+            : current.projects,
+        });
         dispatch({ type: "setView", view: "start" });
       },
       renameProject: (id: string, name: string) => {

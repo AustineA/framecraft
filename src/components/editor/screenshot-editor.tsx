@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { useEditor, useProjects } from "@/lib/editor-store";
 
 import { CanvasArea } from "./canvas-area";
@@ -14,6 +16,18 @@ import { TopBar } from "./top-bar";
 export function ScreenshotEditor() {
   const { previewOpen, exportOpen, hydrated } = useEditor();
   const { view } = useProjects();
+
+  // A file dropped anywhere but a real drop target makes the browser open it,
+  // navigating away from the editor. Swallow those misses instead.
+  useEffect(() => {
+    const swallow = (event: DragEvent) => event.preventDefault();
+    window.addEventListener("dragover", swallow);
+    window.addEventListener("drop", swallow);
+    return () => {
+      window.removeEventListener("dragover", swallow);
+      window.removeEventListener("drop", swallow);
+    };
+  }, []);
 
   // Nothing is known until the project store has been read.
   if (!hydrated) return <div className="h-full w-full bg-[var(--soft)]" />;

@@ -18,13 +18,28 @@ export function MediaPanel() {
   const screen = useSelectedScreen();
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  // Drag events also fire for the zone's own children, so nesting is counted
+  // rather than clearing the highlight on the first dragleave.
+  const depth = useRef(0);
 
-  const addFiles = async (files: FileList | null) => {
-    if (!files?.length) return;
+  const endDrag = () => {
+    depth.current = 0;
+    setDragging(false);
+  };
+
+  const addFiles = async (incoming: File[]) => {
+    // A drop can carry folders, text or anything else; keep the images.
+    const files = incoming.filter((file) => file.type.startsWith("image/"));
+    if (!files.length) {
+      if (incoming.length) setError("Drop an image file.");
+      return;
+    }
+
     setError(null);
     try {
       const assets = await Promise.all(
-        Array.from(files).map(async (file) => ({
+        files.map(async (file) => ({
           id: crypto.randomUUID(),
           name: file.name,
           dataUrl: await readScaledImage(file),
@@ -47,11 +62,35 @@ export function MediaPanel() {
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="flex h-[116px] shrink-0 flex-col items-center justify-center gap-2 rounded-[12px] border border-[#007AFF66] bg-[#007AFF08] transition-colors hover:bg-[#007AFF12]"
+        onDragEnter={(event) => {
+          event.preventDefault();
+          depth.current += 1;
+          setDragging(true);
+        }}
+        // Without preventDefault the browser refuses the drop and opens the
+        // file instead, navigating away from the editor.
+        onDragOver={(event) => {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "copy";
+        }}
+        onDragLeave={() => {
+          depth.current -= 1;
+          if (depth.current <= 0) endDrag();
+        }}
+        onDrop={(event) => {
+          event.preventDefault();
+          endDrag();
+          void addFiles(Array.from(event.dataTransfer.files));
+        }}
+        className={`flex h-[116px] shrink-0 flex-col items-center justify-center gap-2 rounded-[12px] border transition-colors ${
+          dragging
+            ? "border-[var(--purple)] bg-[#007AFF1F]"
+            : "border-[#007AFF66] bg-[#007AFF08] hover:bg-[#007AFF12]"
+        }`}
       >
         <ArrowUpToLine className="size-[20px] text-[#007AFF]" />
         <span className="text-[11px] font-[650] text-[var(--ink)]">
-          Drop files or browse
+          {dragging ? "Release to add" : "Drop files or browse"}
         </span>
         <span className="text-[9px] text-[var(--muted)]">
           PNG, JPG, SVG up to 20 MB
@@ -64,7 +103,7 @@ export function MediaPanel() {
         multiple
         hidden
         onChange={(event) => {
-          void addFiles(event.target.files);
+          void addFiles(Array.from(event.target.files ?? []));
           event.target.value = "";
         }}
       />

@@ -14,6 +14,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Compiled CLI output.
     "dist/**",
+    // Build the CLI renders from; kept apart from .next so exports cannot
+    // clobber a running dev server.
+    ".next-framecraft/**",
   ]),
 ]);
 
