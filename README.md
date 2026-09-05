@@ -4,6 +4,8 @@ An App Store screenshot editor. Start from a category template, drop your app
 screens into a device frame, translate the copy, and export every size App
 Store Connect asks for — from the browser or the terminal.
 
+![Framecraft's start screen, showing the category templates](docs/images/start-screen.png)
+
 ## Install
 
 ```bash

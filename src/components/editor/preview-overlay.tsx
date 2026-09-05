@@ -3,16 +3,19 @@
 import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { isDark } from "@/lib/color";
-import { exportDevice, localeName } from "@/lib/editor-data";
-import { resolveText } from "@/lib/localize";
 import {
-  useEditor,
-  useEditorDispatch,
-} from "@/lib/editor-store";
+  artboardHeightFor,
+  exportDevice,
+  localeName,
+} from "@/lib/editor-data";
+import { useEditor, useEditorDispatch } from "@/lib/editor-store";
 
-import { AppScreen, appScreenBackground } from "./app-screens";
-import { DeviceFrame, frameMetrics } from "./device-frame";
+import { ArtboardCard } from "./artboard";
+
+/** Cards show the whole artboard, scaled to fit the strip. */
+const ARTBOARD_WIDTH = 392;
+const CARD_WIDTH = 262;
+const CARD_SCALE = CARD_WIDTH / ARTBOARD_WIDTH;
 
 /** Marks the gap a dragged slide would drop into. */
 function DropLine({ side }: { side: "left" | "right" }) {
@@ -61,8 +64,8 @@ export function PreviewOverlay() {
 
   const device = exportDevice(canvasDeviceId);
   const deviceName = device.name;
-  /** Preview cards mirror the artboard's aspect at a 262 px width. */
-  const cardHeight = Math.round((262 * device.height) / device.width);
+  const artboardHeight = artboardHeightFor(device);
+  const cardHeight = Math.round(artboardHeight * CARD_SCALE);
 
   const close = () => dispatch({ type: "setPreviewOpen", open: false });
 
@@ -133,7 +136,6 @@ export function PreviewOverlay() {
           }}
         >
           {screens.map((screen, index) => {
-            const dark = isDark(screen.bg);
             const isSelected = screen.id === selectedScreenId;
             const dragging = dragId === screen.id;
             return (
@@ -178,49 +180,33 @@ export function PreviewOverlay() {
                     dispatch({ type: "selectScreen", id: screen.id })
                   }
                   aria-current={isSelected ? "true" : undefined}
-                  className={`flex w-[262px] cursor-grab flex-col items-center gap-[10px] overflow-hidden rounded-[4px] px-[15px] pt-9 shadow-[0_8px_20px_#00000022] transition-[outline] active:cursor-grabbing ${
+                  className={`block cursor-grab overflow-hidden rounded-[4px] shadow-[0_8px_20px_#00000022] transition-[outline] active:cursor-grabbing ${
                     isSelected
                       ? "outline-2 outline-offset-2 outline-[var(--purple)]"
                       : "outline-0"
                   }`}
-                  style={{ backgroundColor: screen.bg, height: cardHeight }}
+                  style={{ width: CARD_WIDTH, height: cardHeight }}
                 >
-                  <span
-                    className={`w-full shrink-0 text-center text-[20px] leading-none font-bold tracking-[-0.5px] whitespace-pre-line ${
-                      dark ? "text-white" : "text-[var(--ink)]"
-                    }`}
+                  {/*
+                    The same artboard the canvas and the exporter draw, scaled
+                    down — so type, chip, position and decorations preview
+                    exactly as they will ship.
+                  */}
+                  <div
+                    className="origin-top-left"
+                    style={{
+                      width: ARTBOARD_WIDTH,
+                      height: artboardHeight,
+                      transform: `scale(${CARD_SCALE})`,
+                    }}
                   >
-                    {resolveText(screen, locale).headline}
-                  </span>
-
-                  <DeviceFrame
-                    metrics={frameMetrics(screen.deviceFrame, 262, cardHeight)}
-                    color={screen.deviceColor}
-                    screenBackground={appScreenBackground(
-                      screen.app,
-                      frameMetrics(screen.deviceFrame, 262, cardHeight).kind,
-                    )}
-                    chrome={screen.deviceChrome}
-                    fillScreen={Boolean(
-                      media.find((asset) => asset.id === screen.mediaId),
-                    )}
-                    className="drop-shadow-[0_10px_20px_#00000033]"
-                  >
-                    <AppScreen
-                      kind={screen.app}
-                      deviceKind={
-                        frameMetrics(screen.deviceFrame, 262, cardHeight).kind
-                      }
-                      screenWidth={
-                        frameMetrics(screen.deviceFrame, 262, cardHeight)
-                          .screenWidth
-                      }
-                      imageUrl={
-                        media.find((asset) => asset.id === screen.mediaId)
-                          ?.dataUrl
-                      }
+                    <ArtboardCard
+                      screen={screen}
+                      media={media}
+                      locale={locale}
+                      height={artboardHeight}
                     />
-                  </DeviceFrame>
+                  </div>
                 </button>
               </li>
             );
