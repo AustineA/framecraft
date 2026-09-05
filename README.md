@@ -72,13 +72,43 @@ framecraft export --out ./shots
 
 Commands act on the `framecraft.json` in the current directory, or the
 nearest parent that has one — no path to pass around. Read state with
-`--json` on any read command. See [docs/CLI.md](docs/CLI.md) for the full
-reference.
+`--json` on any read command, and unknown flags are rejected rather than
+ignored, so a typo fails loudly instead of quietly doing the wrong thing.
 
 ```bash
 framecraft status      # where it installed from
 framecraft uninstall   # remove it
 ```
+
+### What an agent can drive
+
+**Reference** — no project needed, all take `--json`:
+`templates` · `locales` · `devices` · `frames` · `fonts` · `backgrounds` ·
+`apps` · `browsers`
+
+**Project** — `init` · `rename` · `show` · `screens` · `add` · `remove`
+
+**Editing** — everything on a slide, via `set --screen <n|id|all>`:
+
+| Group | Flags |
+| --- | --- |
+| Text | `--headline` `--subhead` `--brand-chip` (`\n` for a line break) |
+| Type | `--font` `--font-size` `--subhead-size` `--align` |
+| Canvas | `--bg` `--app` `--screen-name` |
+| Device | `--frame` `--device-color` `--device-scale` `--device-x` `--device-y` |
+| Text block | `--text-x` `--text-y` |
+| Visibility | `--show`/`--hide` × `headline`, `chip`, `device`, `status` |
+| Locale | `--locale` routes the edit into a translation |
+
+**Translation** — `translate` (per field, or `--from <json>` in bulk) ·
+`translations` (coverage, showing what still falls back) ·
+`clear-translations`
+
+**Export** — `export --out` with `--screen` `--devices` `--locales`
+`--format` `--flat` `--simple-names` `--url` `--browser`, writing exact App
+Store sizes into per-locale folders.
+
+See [docs/CLI.md](docs/CLI.md) for the full reference.
 
 ## Sharing one file with an agent
 

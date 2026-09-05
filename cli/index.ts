@@ -241,10 +241,10 @@ function applySet(screen: Screen, flags: Flags, locale: string): Screen {
 /** Flags every command accepts, so a typo fails loudly instead of silently. */
 const SET_FLAGS = [
   "screen", "locale", "headline", "subhead", "brand-chip", "screen-name",
-  "name", "bg", "app", "font", "font-size", "subhead-size", "size", "align", "frame", "device-color",
-  "device-scale", "device-x", "device-y", "scale", "x", "y", "text-x", "text-y", "hide-headline", "show-headline",
-  "hide-chip", "show-chip", "hide-device", "show-device",
-  "hide-status", "show-status",
+  "name", "bg", "app", "font", "font-size", "subhead-size", "align", "frame",
+  "device-color", "device-scale", "device-x", "device-y", "text-x", "text-y",
+  "hide-headline", "show-headline", "hide-chip", "show-chip",
+  "hide-device", "show-device", "hide-status", "show-status",
 ] as const;
 
 const COMMAND_FLAGS: Record<string, readonly string[]> = {

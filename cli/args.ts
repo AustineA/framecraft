@@ -41,9 +41,10 @@ export function assertKnownFlags(flags: Flags, known: readonly string[]): void {
   if (unknown.length === 0) return;
 
   const suggestions = unknown.map((name) => {
-    const near = known.find(
-      (candidate) => candidate.startsWith(name) || name.startsWith(candidate),
-    );
+    const near =
+      known.find(
+        (candidate) => candidate.startsWith(name) || name.startsWith(candidate),
+      ) ?? known.find((candidate) => candidate.includes(name));
     return near ? `--${name} (did you mean --${near}?)` : `--${name}`;
   });
   throw new Error(
