@@ -1,0 +1,96 @@
+export type ToolId = "screens" | "text" | "media" | "shapes" | "brand";
+export type Align = "left" | "center" | "right";
+export type AppScreenKind =
+  | "today"
+  | "plan"
+  | "streak"
+  | "insights"
+  | "focus"
+  | "upgrade"
+  | "finance-home"
+  | "finance-detail"
+  | "tasks-home"
+  | "tasks-detail"
+  | "social-home"
+  | "social-detail"
+  | "photo-home"
+  | "photo-detail"
+  | "shop-home"
+  | "shop-detail";
+export type ExportFormat = "png" | "jpeg";
+export type CanvasMode = "select" | "hand";
+export type InspectorTab = "design" | "animate";
+export type MediaTab = "uploads" | "app-screens";
+
+export type MediaAsset = {
+  id: string;
+  name: string;
+  /** Downscaled data URL, so it persists and exports. */
+  dataUrl: string;
+};
+
+export type Screen = {
+  id: string;
+  number: string;
+  name: string;
+  /** Uppercase label drawn on the list thumbnail. */
+  miniTitle: string;
+  /** Small brand pill above the headline. */
+  brandChip: string;
+  brandChipVisible: boolean;
+  /** Artboard headline. `\n` is a hard line break. */
+  headline: string;
+  subhead: string;
+  /** Drives the thumbnail, the artboard gradient and the preview card. */
+  bg: string;
+  /** Which mini app screen renders inside the device. */
+  app: AppScreenKind;
+  /** An uploaded screenshot shown in the device instead of the mock UI. */
+  mediaId: string | null;
+  /** Headline size in App Store pixels (rendered at ARTBOARD_SCALE). */
+  fontSize: number;
+  align: Align;
+  headlineVisible: boolean;
+  deviceVisible: boolean;
+  deviceFrame: string;
+  deviceColor: string;
+  /** Device scale as a percentage. */
+  deviceScale: number;
+  /** Device offset from its laid-out position, in artboard pixels. */
+  deviceX: number;
+  deviceY: number;
+  /** Headline + subhead offset, in artboard pixels. */
+  textX: number;
+  textY: number;
+  fontFamily: string;
+  /** Ids from SHAPE_DECORATIONS that are switched on for this screen. */
+  decorations: string[];
+  /** Id from BASIC_SHAPES drawn as a soft background accent, if any. */
+  accentShape: string | null;
+};
+
+export type ExportDevice = {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+};
+
+export type EditorState = {
+  tool: ToolId;
+  selectedScreenId: string;
+  /** Export target the canvas is sized against. */
+  canvasDeviceId: string;
+  screens: Screen[];
+  media: MediaAsset[];
+  zoom: number;
+  canvasMode: CanvasMode;
+  inspectorTab: InspectorTab;
+  mediaTab: MediaTab;
+  activeTextStyleId: string;
+  previewOpen: boolean;
+  exportOpen: boolean;
+  exportDeviceIds: string[];
+  exportFormat: ExportFormat;
+  exportNaming: boolean;
+};

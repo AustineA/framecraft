@@ -1,26 +1,82 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Design tokens from the .pen document */
+  --surface: #ffffff;
+  --ink: #1d1d1f;
+  --muted: #6e6e73;
+  --line: #d2d2d7;
+  --soft: #f5f5f7;
+  --purple: #007aff;
+  --orange: #ff9d00;
+
+  /* App chrome (repeated shell values) */
+  --chrome-bar: #f6f6f8d9;
+  --chrome-panel: #f9f9fad9;
+  --chrome-topbar: #fafafacc;
+  --hairline: #00000014;
+  --canvas: #e6e6e9;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html,
+  body {
+    height: 100%;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  .font-ui {
+    font-family: var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont,
+      "Segoe UI", sans-serif;
+  }
+
+  .font-display {
+    font-family: var(--font-funnel-sans), "Funnel Sans", var(--font-inter),
+      sans-serif;
+  }
+
+  /* System stacks — resolved by the OS, not bundled. */
+  .font-system {
+    font-family:
+      system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      sans-serif;
+  }
+
+  .font-system-serif {
+    font-family: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  }
+
+  .font-system-rounded {
+    font-family:
+      ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", system-ui,
+      sans-serif;
+  }
+
+  .font-system-mono {
+    font-family:
+      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  .font-helvetica {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  .font-avenir {
+    font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  }
+
+  .font-georgia {
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  .font-times {
+    font-family: "Times New Roman", Times, serif;
+  }
+
+  .font-verdana {
+    font-family: Verdana, Geneva, sans-serif;
+  }
+
+  .font-courier {
+    font-family: "Courier New", Courier, monospace;
+  }
 }
