@@ -45,7 +45,7 @@ function TemplatePreview({ template }: { template: Template }) {
         className="origin-top-left"
         style={{ transform: `scale(${PREVIEW_SCALE})` }}
       >
-        <ArtboardCard screen={screen} height={height} />
+        <ArtboardCard screen={screen} media={template.data.media} height={height} />
       </div>
       {/* Softens the crop so the cut edge reads as deliberate. */}
       <span className="pointer-events-none absolute inset-x-0 bottom-0 h-[54px] bg-linear-to-b from-transparent to-black/12" />
@@ -115,7 +115,7 @@ export function StartScreen() {
                 Start from a template
               </h2>
               <p className="text-[13px] text-[var(--muted)]">
-                Six sets, written for the categories that sell the most.
+                Screenshot sets, ready to make your own.
               </p>
             </div>
             <div className="flex items-center gap-2">

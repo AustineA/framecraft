@@ -311,6 +311,9 @@ export function InspectorPanel() {
 
             <div className="flex flex-col gap-[7px]">
               <FieldLabel>Background</FieldLabel>
+              <select aria-label="Background style" value={screen.backgroundStyle ?? "gradient"} onChange={(event) => dispatch({ type: "updateScreen", id: screen.id, patch: { backgroundStyle: event.target.value as "solid" | "gradient" } })} className="rounded border border-black/10 bg-white p-1 text-[10px]">
+                <option value="gradient">Gradient</option><option value="solid">Solid</option>
+              </select>
               <div className="flex h-[38px] gap-2">
                 <label className="relative h-full w-[42px] shrink-0 overflow-hidden rounded-[8px] border border-[var(--line)]">
                   <span className="sr-only">Background colour</span>

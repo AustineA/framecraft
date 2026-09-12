@@ -1,3 +1,4 @@
+import { ITEMLIST_PROJECT } from "./itemlist-template";
 import { INITIAL_STATE, SCREENS } from "./editor-data";
 import type { AppScreenKind, Screen } from "./editor-types";
 import type { ProjectData } from "./projects";
@@ -55,6 +56,14 @@ function build(
 }
 
 export const TEMPLATES: Template[] = [
+  {
+    id: "itemlist-reference",
+    category: "Layered showcase",
+    name: "Itemlist — illustrated inventory",
+    tagline: "A four-screen composition with spanning artwork, callouts and cropped phones.",
+    accent: "#9FA747",
+    data: ITEMLIST_PROJECT,
+  },
   {
     id: "health",
     category: "Health & Fitness",

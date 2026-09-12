@@ -2,6 +2,7 @@
 
 import { useEditor } from "@/lib/editor-store";
 
+import { LayersPanel } from "./layers-panel";
 import { BrandPanel } from "./brand-panel";
 import { MediaPanel } from "./media-panel";
 import { ScreensPanel } from "./screens-panel";
@@ -10,6 +11,7 @@ import { TextPanel } from "./text-panel";
 
 const PANELS = {
   screens: ScreensPanel,
+  layers: LayersPanel,
   text: TextPanel,
   media: MediaPanel,
   shapes: ShapesPanel,

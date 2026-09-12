@@ -22,7 +22,7 @@ import { ArtboardCard } from "./artboard";
 const BASE_ZOOM = 72;
 
 export function CanvasArea() {
-  const { zoom, canvasMode, canvasDeviceId, media, locale } = useEditor();
+  const { zoom, canvasMode, canvasDeviceId, media, locale, selectedLayerId, tool } = useEditor();
   const dispatch = useEditorDispatch();
   const screen = useSelectedScreen();
   const scale = zoom / BASE_ZOOM;
@@ -147,7 +147,10 @@ export function CanvasArea() {
               media={media}
               locale={locale}
               height={artboardHeight}
-              editable
+              editable={canvasMode === "select" && tool !== "layers"}
+              selectedLayerId={selectedLayerId}
+              layersInteractive={canvasMode === "select" && tool === "layers"}
+              onSelectLayer={(id) => dispatch({ type: "selectLayer", id })}
               onEdit={(patch) =>
                 dispatch({ type: "updateScreen", id: screen.id, patch })
               }

@@ -5,6 +5,7 @@ import { ARTBOARD_SCALE, fontStack } from "@/lib/editor-data";
 import type { Align, MediaAsset, Screen } from "@/lib/editor-types";
 import { resolveText, textPatch } from "@/lib/localize";
 
+import { ArtboardLayer } from "./artboard-layer";
 import { AppScreen, appScreenBackground } from "./app-screens";
 import { DeviceFrame, frameMetrics } from "./device-frame";
 import { EditableText } from "./editable-text";
@@ -42,7 +43,13 @@ export function ArtboardCard({
   height = 768,
   editable = false,
   onEdit,
+  selectedLayerId,
+  onSelectLayer,
+  layersInteractive = false,
 }: {
+  selectedLayerId?: string | null;
+  onSelectLayer?: (id: string) => void;
+  layersInteractive?: boolean;
   screen: Screen;
   /** Library the screen's `mediaId` resolves against. */
   media?: MediaAsset[];
@@ -65,16 +72,26 @@ export function ArtboardCard({
 
   return (
     <div
+      data-artboard
       className={`relative flex flex-col ${ALIGN_ITEMS[screen.align]} gap-[13px] overflow-hidden rounded-[2px] px-[30px] pt-[58px]`}
       // Gradient, headline size and device placement are user-edited values,
       // so they cannot be static Tailwind classes.
       style={{
         width,
         height,
-        backgroundImage: artboardGradient(screen.bg),
+        backgroundColor: screen.bg,
+        backgroundImage: screen.backgroundStyle === "solid" ? undefined : artboardGradient(screen.bg),
+        isolation: "isolate",
         fontFamily: fontStack(screen.fontFamily),
       }}
     >
+      {(screen.layers ?? []).map((layer, index) => <ArtboardLayer
+        key={layer.id} layer={layer} media={media}
+        zIndex={layer.plane === "back" ? 1 + index : 10002 + index}
+        selected={selectedLayerId === layer.id} interactive={layersInteractive}
+        onSelect={onSelectLayer}
+        onChange={(updated) => commit({ layers: (screen.layers ?? []).map((item) => item.id === updated.id ? updated : item) })}
+      />)}
       {has("glow") ? (
         <div className="pointer-events-none absolute top-[38%] left-1/2 size-[420px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,#FFFFFFCC_0%,#FFFFFF00_70%)]" />
       ) : null}
@@ -88,7 +105,7 @@ export function ArtboardCard({
       ) : null}
 
       {screen.brandChipVisible ? (
-        <div className="relative z-[2] flex h-[22px] shrink-0 items-center gap-[5px] rounded-full bg-[#FFFFFFB8] px-[9px] shadow-[0_1px_2px_#00000012]">
+        <div className="relative z-[10001] flex h-[22px] shrink-0 items-center gap-[5px] rounded-full bg-[#FFFFFFB8] px-[9px] shadow-[0_1px_2px_#00000012]">
           <Sparkles className="size-[10px] shrink-0 text-[var(--purple)]" />
           <EditableText
             label="Brand chip"
@@ -105,7 +122,7 @@ export function ArtboardCard({
       {screen.headlineVisible ? (
         // Headline and subhead move together, keeping their 13px pairing.
         <div
-          className="relative z-[2] flex w-full shrink-0 flex-col gap-[13px]"
+          className="relative z-[10001] flex w-full shrink-0 flex-col gap-[13px]"
           style={{
             transform: `translate(${screen.textX}px, ${screen.textY}px)`,
           }}
@@ -143,7 +160,7 @@ export function ArtboardCard({
       ) : null}
 
       {has("callout") ? (
-        <div className="relative z-[2] flex shrink-0 items-center gap-[6px] rounded-[10px] bg-white/85 px-[10px] py-[6px] shadow-[0_2px_6px_#00000014]">
+        <div className="relative z-[10001] flex shrink-0 items-center gap-[6px] rounded-[10px] bg-white/85 px-[10px] py-[6px] shadow-[0_2px_6px_#00000014]">
           <MessageSquare className="size-[11px] text-[var(--purple)]" />
           <span className="text-[9px] font-semibold text-[var(--ink)]">
             Loved by 40,000 people
@@ -152,7 +169,7 @@ export function ArtboardCard({
       ) : null}
 
       {has("badge") ? (
-        <div className="relative z-[2] flex shrink-0 items-center gap-[6px] rounded-full bg-[#1D1D1F] px-[11px] py-[5px]">
+        <div className="relative z-[10001] flex shrink-0 items-center gap-[6px] rounded-full bg-[#1D1D1F] px-[11px] py-[5px]">
           <BadgeCheck className="size-[11px] text-white" />
           <span className="text-[8px] font-bold tracking-[0.4px] text-white">
             EDITORS’ CHOICE
@@ -162,7 +179,7 @@ export function ArtboardCard({
 
       {screen.deviceVisible ? (
         <div
-          className="relative z-[1] origin-top"
+          className="relative z-[10000] origin-top"
           style={{
             transform: `translate(${screen.deviceX}px, ${screen.deviceY}px) scale(${screen.deviceScale / 84})`,
           }}

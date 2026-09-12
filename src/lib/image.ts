@@ -23,8 +23,8 @@ export async function readScaledImage(file: File): Promise<string> {
   context.drawImage(source, 0, 0, width, height);
   source.close();
 
-  // PNG keeps transparency; everything else compresses far better as JPEG.
-  return file.type === "image/png"
+  // Preserve alpha for cutouts, including WebP and SVG assets.
+  return file.type !== "image/jpeg"
     ? canvas.toDataURL("image/png")
     : canvas.toDataURL("image/jpeg", QUALITY);
 }

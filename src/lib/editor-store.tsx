@@ -48,6 +48,7 @@ import {
 } from "./projects";
 import type {
   Align,
+  Layer,
   MediaAsset,
   CanvasMode,
   EditorState,
@@ -58,9 +59,10 @@ import type {
   ToolId,
 } from "./editor-types";
 
-type Snapshot = { screens: Screen[]; selectedScreenId: string };
+type Snapshot = { screens: Screen[]; media: MediaAsset[]; selectedScreenId: string };
 
 type State = EditorState & {
+  selectedLayerId: string | null;
   past: Snapshot[];
   future: Snapshot[];
   hydrated: boolean;
@@ -87,6 +89,7 @@ export type Action =
       savedAt: number;
       saved: boolean;
     }
+  | { type: "selectLayer"; id: string | null }
   | { type: "setView"; view: AppView }
   | { type: "setTool"; tool: ToolId }
   | { type: "setCanvasDevice"; id: string }
@@ -96,6 +99,7 @@ export type Action =
   | { type: "deleteScreen"; id: string }
   | { type: "moveScreen"; id: string; toIndex: number }
   | { type: "updateScreen"; id: string; patch: Partial<Screen> }
+  | { type: "addLayers"; id: string; layers: Layer[]; assets: MediaAsset[] }
   | { type: "addMedia"; assets: MediaAsset[] }
   | { type: "removeMedia"; id: string }
   | { type: "applyTextStyle"; styleId: string }
@@ -115,6 +119,7 @@ export type Action =
 
 const initialState: State = {
   ...INITIAL_STATE,
+  selectedLayerId: null,
   past: [],
   future: [],
   hydrated: false,
@@ -165,7 +170,7 @@ function normalize(payload: Partial<EditorState>): Partial<EditorState> {
 }
 
 function snapshot(state: State): Snapshot {
-  return { screens: state.screens, selectedScreenId: state.selectedScreenId };
+  return { screens: state.screens, media: state.media, selectedScreenId: state.selectedScreenId };
 }
 
 /** Wrap a screens-mutating result so undo/redo can step over it. */
@@ -186,6 +191,7 @@ function reducer(state: State, action: Action): State {
         ...normalize(action.data),
         projects: action.projects,
         activeProjectId: action.activeId,
+        selectedLayerId: null,
         view: action.view,
         savedAt: Date.now(),
         saved: true,
@@ -193,6 +199,9 @@ function reducer(state: State, action: Action): State {
         future: [],
         hydrated: true,
       };
+
+    case "selectLayer":
+      return { ...state, selectedLayerId: action.id };
 
     case "setView":
       return { ...state, view: action.view };
@@ -215,7 +224,7 @@ function reducer(state: State, action: Action): State {
       return { ...state, locale: action.locale };
 
     case "selectScreen":
-      return { ...state, selectedScreenId: action.id };
+      return { ...state, selectedScreenId: action.id, selectedLayerId: null };
 
     case "addScreen": {
       const index = state.screens.length + 1;
@@ -277,15 +286,27 @@ function reducer(state: State, action: Action): State {
         ),
       });
 
+    case "addLayers":
+      return withHistory(state, {
+        media: [...action.assets, ...state.media],
+        selectedLayerId: action.layers.at(-1)?.id ?? null,
+        screens: state.screens.map((screen) => screen.id === action.id
+          ? { ...screen, layers: [...(screen.layers ?? []), ...action.layers] }
+          : screen),
+      });
+
     case "addMedia":
       return withHistory(state, { media: [...action.assets, ...state.media] });
 
     case "removeMedia":
       return withHistory(state, {
         media: state.media.filter((asset) => asset.id !== action.id),
-        // Any screen using it falls back to the mock app UI.
+        // Remove references atomically; undo restores the asset and its layers.
         screens: state.screens.map((screen) =>
-          screen.mediaId === action.id ? { ...screen, mediaId: null } : screen,
+          ({ ...screen,
+            mediaId: screen.mediaId === action.id ? null : screen.mediaId,
+            layers: screen.layers?.filter((layer) => layer.mediaId !== action.id),
+          }),
         ),
       });
 

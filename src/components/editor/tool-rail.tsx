@@ -4,6 +4,7 @@ import {
   CircleQuestionMark,
   Image as ImageIcon,
   LayoutTemplate,
+  Layers,
   Palette,
   Shapes,
   Type,
@@ -15,6 +16,7 @@ import type { ToolId } from "@/lib/editor-types";
 
 const TOOLS: { id: ToolId; label: string; icon: LucideIcon }[] = [
   { id: "screens", label: "Screens", icon: LayoutTemplate },
+  { id: "layers", label: "Layers", icon: Layers },
   { id: "text", label: "Text", icon: Type },
   { id: "media", label: "Media", icon: ImageIcon },
   { id: "shapes", label: "Shapes", icon: Shapes },

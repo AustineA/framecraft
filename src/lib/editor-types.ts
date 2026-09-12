@@ -1,4 +1,4 @@
-export type ToolId = "screens" | "text" | "media" | "shapes" | "brand";
+export type ToolId = "screens" | "text" | "media" | "shapes" | "brand" | "layers";
 export type Align = "left" | "center" | "right";
 export type AppScreenKind =
   | "today"
@@ -36,7 +36,41 @@ export type MediaAsset = {
   dataUrl: string;
 };
 
+/** Freeform objects use authored artboard pixels; arrays run back to front. */
+export type Layer = {
+  id: string;
+  name: string;
+  kind: "text" | "image" | "shape";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  opacity: number;
+  visible: boolean;
+  locked: boolean;
+  plane: "back" | "front";
+  text: string;
+  fontSize: number;
+  color: string;
+  fill: string;
+  radius: number;
+  shadow: boolean;
+  mediaId: string | null;
+  fit: "contain" | "cover";
+  imageScale?: number;
+  /** Optional typography overrides for precisely authored layouts. */
+  fontFamily?: string;
+  fontWeight?: number;
+  lineHeight?: number;
+  letterSpacing?: number;
+  padding?: number;
+};
+
 export type Screen = {
+  /** Optional for compatibility with existing projects and CLI files. */
+  layers?: Layer[];
+  backgroundStyle?: "gradient" | "solid";
   id: string;
   number: string;
   name: string;
