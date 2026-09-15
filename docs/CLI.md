@@ -319,6 +319,26 @@ browser it picked, so the choice is never a mystery.
 needs `npm run build` first. Pointing at a running dev server with
 `--url http://localhost:3000` skips that.
 
+### `preview`
+
+```bash
+framecraft preview                 # serves ./export at http://localhost:4820/
+framecraft preview --dir shots --port 5000 --no-open
+```
+
+Serves an export directory as a single review page: one row of screens per
+locale, a locale dropdown (← / → keys step through locales), and the screen's
+headline — or its text layers, for layered sets — as a hover title when a
+`framecraft.json` is in reach. Both layouts work: per-locale folders and
+`--flat`. Nothing is rendered; it shows exactly the PNGs on disk, so re-run
+`export` after changing the project. `--json` prints the URL and locale list.
+
+| Flag | Default | Meaning |
+| --- | --- | --- |
+| `--dir <dir>` | `export` | Export directory to serve |
+| `--port <n>` | `4820` | Port to listen on (`0` picks a free one) |
+| `--no-open` | off | Do not open the default browser |
+
 ---
 
 ## Opening CLI work in the app

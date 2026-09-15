@@ -48,4 +48,4 @@ Run a normal export after generating the project:
 framecraft export framecraft.json --out export --flat --simple-names
 ```
 
-Create a montage or presentation board and inspect it at full size. Check headline wrapping, clipped card text, device-header obstruction, transparent-asset edges, cross-panel alignment, and contrast. Two visual passes are normal. Use `magick identify` to verify exact dimensions before delivery.
+Then `framecraft preview --dir export` serves the exported PNGs at `http://localhost:4820/` with a locale switcher and headline hover titles — the fastest way to give a person a review link. It shows what is on disk, so export again after every change. For your own inspection create a montage or presentation board and read it at full size. Check headline wrapping, clipped card text, device-header obstruction, transparent-asset edges, cross-panel alignment, and contrast. Two visual passes are normal. Use `magick identify` to verify exact dimensions before delivery.

@@ -32,6 +32,7 @@ import {
 import { HELP } from "./help";
 import { install, status, uninstall } from "./install";
 import { emit, info, rows } from "./output";
+import { preview } from "./preview";
 import { exportProject, installedBrowsers } from "./render";
 import {
   CliError,
@@ -50,6 +51,15 @@ const APP_KINDS = [
   "social-home", "social-detail", "photo-home", "photo-detail",
   "shop-home", "shop-detail",
 ];
+
+function findProjectOrNull(explicit?: string): string | null {
+  try {
+    return findProject(explicit);
+  } catch (error) {
+    if (explicit) throw error; // an explicit path that is missing is a mistake
+    return null;
+  }
+}
 
 /** `\n` in a shell argument should become a real line break. */
 function unescape(value: string): string {
@@ -262,6 +272,7 @@ const COMMAND_FLAGS: Record<string, readonly string[]> = {
     "out", "screen", "devices", "locales", "format", "simple-names", "flat",
     "url", "browser", "chrome",
   ],
+  preview: ["dir", "port", "no-open"],
 };
 
 /* ------------------------------------------------------------- commands -- */
@@ -283,6 +294,25 @@ async function run(argv: string[]): Promise<void> {
   // A path is optional: without one, commands act on the framecraft.json in
   // this directory or a parent, and `init` creates one here.
   const explicit = positional[1];
+
+  if (command === "preview") {
+    // Only needs a project for hover captions, so a missing one is fine.
+    const found = findProjectOrNull(explicit);
+    const project = found ? load(found) : undefined;
+    const dir = str(flags, "dir") ?? "export";
+    await preview({
+      dir,
+      port: num(flags, "port") ?? 4820,
+      open: !bool(flags, "no-open"),
+      project,
+      name: project?.name ?? dir,
+      onListen: (url, sets) =>
+        emit(json, { url, dir, locales: sets.map((set) => set.locale) }, () =>
+          info(`Previewing ${dir} at ${url}  (${sets.length} locale${sets.length === 1 ? "" : "s"}; Ctrl+C to stop)`)),
+    });
+    return;
+  }
+
   const path =
     command === "init"
       ? newProjectPath(explicit, bool(flags, "force"))

@@ -104,6 +104,8 @@ framecraft uninstall   # remove it
 `translations` (coverage, showing what still falls back) ·
 `clear-translations`
 
+**Preview** — `preview [--dir export]` serves the exported set in the browser with a locale switcher
+
 **Export** — `export --out` with `--screen` `--devices` `--locales`
 `--format` `--flat` `--simple-names` `--url` `--browser`, writing exact App
 Store sizes into per-locale folders.

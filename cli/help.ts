@@ -75,6 +75,11 @@ EXPORT
 
   Output is <out>/<locale>/<nn>-<screen>-<device>.png at exact App Store sizes.
 
+  preview [--dir <dir>] [--port <n>] [--no-open]
+      Open the exported set in the browser: one row per locale, a locale
+      switcher (← → keys), headline on hover. Default --dir export, port
+      4820. Serves until Ctrl+C. Nothing is re-rendered; run export first.
+
   Unknown flags are rejected rather than ignored, so a typo fails loudly
   instead of quietly producing the wrong output.
 

@@ -22,7 +22,7 @@ Produce a polished, editable Framecraft project, exact-size App Store PNG export
 3. Capture real app screens at native resolution when an app is available. Record element bounds for any UI fragments that will be pulled outside the device.
 4. Build supporting assets intentionally: crop real UI cards with `scripts/crop_cards.py`; create transparent cutouts with `scripts/gen_assets.py` or the available image-generation tool; keep simple UI and geometric details as SVG or Framecraft shapes.
 5. Author the composition in code. Keep app captures pixel-sharp, use layers for depth, and limit each screen to a clear hierarchy of roughly three focal elements.
-6. Generate the portable project, export with Framecraft, assemble a contact sheet or board, inspect it visually, and correct clipping, overlap, wrapping, and contrast.
+6. Generate the portable project, export with Framecraft, then review: `framecraft preview --dir export` serves every locale in the browser (hand the user the URL), and a montage or presentation board works for full-size inspection. Correct clipping, overlap, wrapping, and contrast.
 7. Verify every exported file's dimensions. Run the repository's relevant lint, type, and build checks when repository code changed.
 
 For exact canvas geometry, z-order, headline pills, card placement, and visual review, read [references/layout-and-rendering.md](references/layout-and-rendering.md).
