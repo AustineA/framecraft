@@ -7,3 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Repository skills
+
+For high-production App Store screenshot composition, layered screenshot templates, spanning artwork, pulled-out UI cards, generated cutouts, or locale-aware layer copy, load and follow `.agents/skills/framecraft-layer-design/SKILL.md`.

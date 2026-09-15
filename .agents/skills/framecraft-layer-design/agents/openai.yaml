@@ -1,0 +1,5 @@
+interface:
+  display_name: "Framecraft Layer Design"
+  short_description: "Build layered App Store screenshot sets"
+  brand_color: "#0B433B"
+  default_prompt: "Use $framecraft-layer-design to create a polished layered App Store screenshot set."
