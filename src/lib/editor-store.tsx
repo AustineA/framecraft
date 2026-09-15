@@ -161,6 +161,10 @@ function normalize(payload: Partial<EditorState>): Partial<EditorState> {
         subheadSize: merged.subheadSize ?? SUBHEAD_SIZE,
         decorations: merged.decorations ?? [],
         accentShape: merged.accentShape ?? null,
+        layers: merged.layers?.map((layer) => ({
+          ...layer,
+          translations: layer.translations ?? {},
+        })),
         deviceFrame: DEVICE_FRAMES.includes(merged.deviceFrame)
           ? merged.deviceFrame
           : template.deviceFrame,

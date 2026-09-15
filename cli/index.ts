@@ -504,7 +504,16 @@ async function run(argv: string[]): Promise<void> {
         const screen = file.project.screens[index];
         const translations = { ...screen.translations };
         delete translations[locale];
-        file.project.screens[index] = { ...screen, translations };
+        file.project.screens[index] = {
+          ...screen,
+          translations,
+          layers: screen.layers?.map((layer) => {
+            if (!(locale in (layer.translations ?? {}))) return layer;
+            const layerTranslations = { ...layer.translations };
+            delete layerTranslations[locale];
+            return { ...layer, translations: layerTranslations };
+          }),
+        };
       }
       save(path, file);
       emit(json, { locale, cleared: targets.length }, () =>

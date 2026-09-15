@@ -1,5 +1,5 @@
 import { BASE_LOCALE } from "./editor-data";
-import type { LocalizedText, Screen } from "./editor-types";
+import type { Layer, LocalizedText, Screen } from "./editor-types";
 
 export type TextField = keyof LocalizedText;
 
@@ -36,6 +36,41 @@ export function hasTranslation(
   return Boolean(screen.translations[locale]?.[field]?.trim());
 }
 
+/** Text shown by a freeform text layer in a locale. */
+export function resolveLayerText(layer: Layer, locale: string): string {
+  if (locale === BASE_LOCALE) return layer.text;
+  const override = layer.translations?.[locale];
+  return override?.trim() ? override : layer.text;
+}
+
+/** True when a text layer carries its own copy for the active locale. */
+export function hasLayerTextTranslation(layer: Layer, locale: string): boolean {
+  return locale === BASE_LOCALE || Boolean(layer.translations?.[locale]?.trim());
+}
+
+/** Routes a layer text edit to base copy or the current locale's override. */
+export function layerTextPatch(
+  layer: Layer,
+  locale: string,
+  value: string,
+): Partial<Layer> {
+  if (locale === BASE_LOCALE) return { text: value };
+  return {
+    translations: {
+      ...layer.translations,
+      [locale]: value,
+    },
+  };
+}
+
+function screenHasLayerTranslation(screen: Screen, locale: string): boolean {
+  return Boolean(
+    screen.layers?.some((layer) =>
+      layer.kind === "text" && hasLayerTextTranslation(layer, locale),
+    ),
+  );
+}
+
 /** Screens with at least one translated field in this locale. */
 export function translatedCount(screens: Screen[], locale: string): number {
   if (locale === BASE_LOCALE) return screens.length;
@@ -46,7 +81,7 @@ export function translatedCount(screens: Screen[], locale: string): number {
         (entry.headline?.trim() ||
           entry.subhead?.trim() ||
           entry.brandChip?.trim()),
-    );
+    ) || screenHasLayerTranslation(screen, locale);
   }).length;
 }
 
@@ -64,6 +99,12 @@ export function exportLocales(screens: Screen[]): string[] {
         entry.brandChip?.trim()
       ) {
         found.add(locale);
+      }
+    }
+    for (const layer of screen.layers ?? []) {
+      if (layer.kind !== "text") continue;
+      for (const [locale, value] of Object.entries(layer.translations ?? {})) {
+        if (value.trim()) found.add(locale);
       }
     }
   }

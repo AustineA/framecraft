@@ -3,9 +3,11 @@
 import { useRef, useState, type PointerEvent } from "react";
 import { fontStack } from "@/lib/editor-data";
 import type { Layer, MediaAsset } from "@/lib/editor-types";
+import { resolveLayerText } from "@/lib/localize";
 
-export function ArtboardLayer({ layer, media, zIndex, selected, interactive, onSelect, onChange }: {
+export function ArtboardLayer({ layer, media, locale = "en-US", zIndex, selected, interactive, onSelect, onChange }: {
   layer: Layer; media: MediaAsset[]; zIndex: number; selected: boolean; interactive: boolean;
+  locale?: string;
   onSelect?: (id: string) => void; onChange?: (layer: Layer) => void;
 }) {
   const drag = useRef<{ x: number; y: number; scale: number; resize: boolean } | null>(null);
@@ -72,7 +74,7 @@ export function ArtboardLayer({ layer, media, zIndex, selected, interactive, onS
         // Local embedded asset; preserve transparency without image optimization.
         // eslint-disable-next-line @next/next/no-img-element
         <img src={image.dataUrl} alt="" draggable={false} style={{ width: "100%", height: "100%", objectFit: layer.fit, transform: `scale(${layer.imageScale ?? 1})` }} />)}
-      {layer.kind === "text" && <span style={{ padding: layer.padding ?? 10, color: layer.color, fontSize: layer.fontSize, fontFamily: layer.fontFamily ? fontStack(layer.fontFamily) : undefined, fontWeight: layer.fontWeight ?? 700, lineHeight: layer.lineHeight ?? 1.1, letterSpacing: layer.letterSpacing, textAlign: "center", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{layer.text}</span>}
+      {layer.kind === "text" && <span style={{ padding: layer.padding ?? 10, color: layer.color, fontSize: layer.fontSize, fontFamily: layer.fontFamily ? fontStack(layer.fontFamily) : undefined, fontWeight: layer.fontWeight ?? 700, lineHeight: layer.lineHeight ?? 1.1, letterSpacing: layer.letterSpacing, textAlign: "center", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{resolveLayerText(layer, locale)}</span>}
     </div>
     {selected && interactive && !layer.locked && <div aria-label="Resize layer" onPointerDown={(event) => start(event, true)} style={{ position: "absolute", right: -5, bottom: -5, width: 10, height: 10, border: "2px solid #007AFF", background: "white", cursor: "nwse-resize" }} />}
   </div>;

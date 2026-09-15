@@ -5,14 +5,15 @@ import { ArrowDown, ArrowUp, Copy, Eye, EyeOff, Lock, Unlock, Trash2 } from "luc
 import { useEditor, useEditorDispatch, useSelectedScreen } from "@/lib/editor-store";
 import type { Layer } from "@/lib/editor-types";
 import { createLayer } from "@/lib/layers";
+import { hasLayerTextTranslation, layerTextPatch, resolveLayerText } from "@/lib/localize";
 import { readScaledImage } from "@/lib/image";
-import { EXPORT_BASE_WIDTH } from "@/lib/editor-data";
+import { BASE_LOCALE, EXPORT_BASE_WIDTH } from "@/lib/editor-data";
 import { PanelShell } from "./panel-shell";
 
 const control = "min-w-0 w-full rounded-md border border-black/10 bg-white px-2 py-1.5 text-[11px] disabled:opacity-40";
 
 export function LayersPanel() {
-  const { selectedLayerId, screens, media } = useEditor();
+  const { selectedLayerId, screens, media, locale } = useEditor();
   const dispatch = useEditorDispatch();
   const screen = useSelectedScreen();
   const layers = screen.layers ?? [];
@@ -90,7 +91,10 @@ export function LayersPanel() {
               <label className="text-[10px]">Line height<input className={control} type="number" step="0.05" min="0.5" value={selected.lineHeight ?? 1.1} onChange={(event) => patch({ lineHeight: Math.max(.5, Number(event.target.value)) })} /></label>
               <label className="text-[10px]">Letter spacing<input className={control} type="number" step="0.1" value={selected.letterSpacing ?? 0} onChange={(event) => patch({ letterSpacing: Number(event.target.value) })} /></label>
             </div>
-            <textarea aria-label="Layer text" className={control} rows={3} value={selected.text} onChange={(event) => patch({ text: event.target.value })} />
+            <label className="block text-[10px]">
+              Layer text{locale !== BASE_LOCALE ? ` · ${hasLayerTextTranslation(selected, locale) ? "translated" : "English fallback"}` : ""}
+              <textarea aria-label="Layer text" className={control} rows={3} value={resolveLayerText(selected, locale)} onChange={(event) => patch(layerTextPatch(selected, locale, event.target.value))} />
+            </label>
             <label className="block text-[10px]">Font size<input aria-label="Layer font size" type="number" min={1} className={control} value={selected.fontSize} onChange={(event) => patch({ fontSize: Math.max(1, Number(event.target.value)) })} /></label>
             <label className="flex items-center justify-between text-[10px]">Text color<input aria-label="Layer text color" type="color" value={selected.color} onChange={(event) => patch({ color: event.target.value })} /></label>
           </>}

@@ -51,6 +51,8 @@ export type Layer = {
   locked: boolean;
   plane: "back" | "front";
   text: string;
+  /** Per-locale text overrides. The base `text` value is the en-US fallback. */
+  translations?: Record<string, string>;
   fontSize: number;
   color: string;
   fill: string;

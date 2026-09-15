@@ -89,6 +89,7 @@ export function ArtboardCard({
         key={layer.id} layer={layer} media={media}
         zIndex={layer.plane === "back" ? 1 + index : 10002 + index}
         selected={selectedLayerId === layer.id} interactive={layersInteractive}
+        locale={locale}
         onSelect={onSelectLayer}
         onChange={(updated) => commit({ layers: (screen.layers ?? []).map((item) => item.id === updated.id ? updated : item) })}
       />)}

@@ -14,6 +14,6 @@ const project = {
   }),
 };
 writeFileSync(resolve(here, '../public/templates/itemlist/itemlist.framecraft.json'), JSON.stringify({
-  framecraft: 1, name: 'Itemlist — reference recreation', updatedAt: new Date().toISOString(), project,
+  framecraft: 1, name: 'PlantPal — layered plant care', updatedAt: new Date().toISOString(), project,
 }));
-console.log('Packaged four screens and all embedded image assets.');
+console.log('Packaged four PlantPal screens and all embedded image assets.');

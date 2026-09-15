@@ -58,10 +58,10 @@ function build(
 export const TEMPLATES: Template[] = [
   {
     id: "itemlist-reference",
-    category: "Layered showcase",
-    name: "Itemlist — illustrated inventory",
-    tagline: "A four-screen composition with spanning artwork, callouts and cropped phones.",
-    accent: "#9FA747",
+    category: "Lifestyle · Plant care",
+    name: "PlantPal — illustrated plant care",
+    tagline: "A four-screen plant-care story with spanning artwork, callouts and cropped phones.",
+    accent: "#B4C99A",
     data: ITEMLIST_PROJECT,
   },
   {

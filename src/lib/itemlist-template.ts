@@ -3,14 +3,14 @@ import type { EditorState, Layer, MediaAsset, Screen } from "./editor-types";
 
 /** Reference layout: 460×998 panels at x=74+480n in a 2048×1152 board. */
 const S = 392 / 460;
-export const ITEMLIST_COLORS = { teal: "#004C4B", olive: "#9FA747" };
+export const ITEMLIST_COLORS = { teal: "#0B433B", olive: "#B4C99A" };
 const assets = [
-  ["illustration", "Woman, parrot & belongings", "illustration.png"],
-  ["camera", "Polaroid Sun 660 photograph", "camera.png"],
-  ["locations-ui", "Locations screenshot", "locations-ui.svg"],
-  ["search-ui", "Search screenshot", "search-ui.svg"],
-  ["detail-ui", "Camera information", "detail-ui.svg"],
-  ["floating-result", "Small box search result", "floating-result.svg"],
+  ["illustration", "Overwhelmed plant parent illustration", "illustration.png"],
+  ["camera", "Variegated monstera photograph", "camera.png"],
+  ["locations-ui", "Plant collection screenshot", "locations-ui.svg"],
+  ["search-ui", "Plant care schedule screenshot", "search-ui.svg"],
+  ["detail-ui", "Monstera care information", "detail-ui.svg"],
+  ["floating-result", "Peace lily care task", "floating-result.svg"],
   ["star", "Rating star", "star.svg"],
 ];
 export const ITEMLIST_MEDIA: MediaAsset[] = assets.map(([id, name, file]) => ({
@@ -40,40 +40,40 @@ function illustration(panel: number) {
   return image(`illustration-${panel}`, "illustration", 440 - (74 + panel * 480), 297 - 77, 790, 780);
 }
 const opening = [
-  text("Opening headline", "no more\ninventory\nchaos", 30, 34, 400, 238, 82, { lineHeight: .97, letterSpacing: -2.5 * S }),
+  text("Opening headline", "no more\nplant care\npanic", 30, 34, 400, 238, 82, { lineHeight: .97, letterSpacing: -2.5 * S }),
   ...Array.from({ length: 5 }, (_, index) => image(`Rating star ${index + 1}`, "star", 55 + index * 72, 299, 63, 63)),
-  text("Average rating", "4,9 average ratings", 45, 369, 370, 47, 35, { color: "#9DBBBC", fontWeight: 700, letterSpacing: -.7 * S }),
-  image("Locations phone", "locations-ui", 22, 451, 416, 950),
-  shape("Foreground teal foliage", 296, 880, 215, 180, "#007779", 90),
+  text("Average rating", "4,9 plant lovers", 45, 369, 370, 47, 35, { color: "#A8CFC4", fontWeight: 700, letterSpacing: -.7 * S }),
+  image("Plant collection phone", "locations-ui", 22, 451, 416, 950),
+  shape("Foreground teal foliage", 296, 880, 215, 180, "#1C7A6F", 90),
   illustration(0),
 ];
 const problem = [
-  text("ADHD thought bubble", "Uh, I have ADHD!", 198, 30, 232, 69, 24, { fill: "#FFFFFF", color: "#080808", radius: 40 * S, rotation: 3, letterSpacing: -.8 * S }),
+  text("Forgot again thought bubble", "Uh, I forgot again!", 198, 30, 232, 69, 24, { fill: "#FFFFFF", color: "#080808", radius: 40 * S, rotation: 3, letterSpacing: -.8 * S }),
   shape("ADHD bubble tail", 407, 93, 18, 18, "#FFFFFF", 20),
   shape("ADHD bubble dot", 425, 112, 10, 10, "#FFFFFF", 10),
-  text("Can't find anything bubble", "I can’t find anything!", 33, 138, 287, 74, 24, { fill: "#FFFFFF", color: "#080808", radius: 40 * S, rotation: -3, letterSpacing: -.6 * S }),
+  text("Watering question bubble", "When did I water it?", 33, 138, 287, 74, 24, { fill: "#FFFFFF", color: "#080808", radius: 40 * S, rotation: -3, letterSpacing: -.6 * S }),
   shape("Lost items bubble tail", 34, 190, 18, 18, "#FFFFFF", 20),
   shape("Lost items bubble dot", 28, 211, 10, 10, "#FFFFFF", 10),
   illustration(1),
 ];
 const search = [
-  text("Search headline", "find\nany items\nin seconds", 20, 35, 420, 248, 80, { lineHeight: .96, letterSpacing: -2.7 * S }),
-  image("Search phone", "search-ui", 20, 309, 416, 950),
-  image("Floating small box result", "floating-result", 108, 701, 374, 116, { shadow: true }),
+  text("Search headline", "know\nwhat plants\nneed today", 20, 35, 420, 248, 80, { lineHeight: .96, letterSpacing: -2.7 * S }),
+  image("Care schedule phone", "search-ui", 20, 309, 416, 950),
+  image("Floating peace lily task", "floating-result", 108, 701, 374, 116, { shadow: true }),
   illustration(2),
 ];
 const detail = [
-  shape("Camera card", 18, -15, 425, 796, "#EFF7FA", 56),
-  image("Polaroid photo", "camera", 18, -4, 425, 300, { fit: "cover", imageScale: 1.35 }),
-  image("Item information", "detail-ui", 18, 296, 425, 486),
+  shape("Plant card", 18, -15, 425, 796, "#EFF7FA", 56),
+  image("Monstera photo", "camera", 18, -4, 425, 300, { fit: "cover", imageScale: 1.15 }),
+  image("Plant information", "detail-ui", 18, 296, 425, 486),
   // Mask the card's lower corners with the same corner radius as the reference.
-  text("Item details headline", "track all\nitems’ info", 25, 827, 410, 127, 60, { lineHeight: .95, letterSpacing: -1.6 * S }),
+  text("Plant details headline", "track every\nplant’s care", 25, 827, 410, 127, 60, { lineHeight: .95, letterSpacing: -1.6 * S }),
 ];
-const names = ["No more inventory chaos", "I can’t find anything", "Find items in seconds", "Track every item"];
+const names = ["No more plant care panic", "I forgot again", "Know what plants need today", "Track every plant"];
 const contents = [opening, problem, search, detail];
 export const ITEMLIST_SCREENS: Screen[] = contents.map((layers, index) => ({
   ...SCREENS[0], id: `itemlist-reference-${index + 1}`, number: String(index + 1).padStart(2, "0"),
-  name: names[index], miniTitle: names[index].toUpperCase(), brandChip: "ITEMLIST",
+  name: names[index], miniTitle: names[index].toUpperCase(), brandChip: "PLANTPAL",
   headline: "", subhead: "", brandChipVisible: false, headlineVisible: false, deviceVisible: false,
   decorations: [], accentShape: null, translations: {}, mediaId: null,
   bg: ITEMLIST_COLORS.teal, backgroundStyle: "solid", fontFamily: "Arial", layers,
