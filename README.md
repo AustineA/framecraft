@@ -61,7 +61,12 @@ Or without cloning:
 npx github:AustineA/framecraft install
 ```
 
-Either way you get a `framecraft` command:
+Either way you get a `framecraft` command. Install also sets up the agent skill that ships in
+`.agents/skills/` (`framecraft-layer-design`, for layered App Store screenshot sets): it copies it to
+`~/.agents/skills/` and links it into Claude Code, Codex, Cursor and any other agents it finds. An
+agent that already has its own copy is left alone. `framecraft uninstall` removes both.
+
+The command:
 
 ```bash
 framecraft init --template finance --name Ledger

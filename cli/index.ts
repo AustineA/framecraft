@@ -87,6 +87,11 @@ function reference(command: string, json: boolean): boolean {
           info(`\n  ⚠️  ${result.bin.replace(/\/framecraft$/, "")} is not on your PATH.`);
           info("     Add it to your shell profile to use the command.");
         }
+        for (const skill of result.skills) {
+          info(`  🧩 Skill ${skill.skill} → ~/.agents/skills/${skill.skill}` +
+            (skill.linked.length ? `, linked into ${skill.linked.join(", ")}` : ""));
+          for (const note of skill.skipped) info(`     ⏭️  left alone: ${note}`);
+        }
         info("  Remove it with `framecraft uninstall`.\n");
       });
       return true;
@@ -97,6 +102,7 @@ function reference(command: string, json: boolean): boolean {
       emit(json, result, () => {
         if (!result.unlinked && !result.removed) info("framecraft was not installed.");
         else info(`Removed framecraft${result.removed ? ` and ${result.removed}` : ""}.`);
+        if (result.skills.length) info(`Removed skills: ${result.skills.join(", ")}.`);
       });
       return true;
     }
@@ -105,7 +111,9 @@ function reference(command: string, json: boolean): boolean {
       const result = status();
       emit(json, result, () =>
         info(result.installed
-          ? `framecraft ${result.bin}\n  app:  ${result.root}\n  node: ${result.node}`
+          ? `framecraft ${result.bin}\n  app:  ${result.root}\n  node: ${result.node}` +
+            result.skills.map((s) => `\n  skill ${s.skill}: ${s.linked.join(", ") || "not linked"}` +
+              (s.skipped.length ? ` (own copy: ${s.skipped.join(", ")})` : "")).join("")
           : `Running from ${result.root}, but not installed.\n` +
             "  Run `framecraft install`."));
       return true;

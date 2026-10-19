@@ -4,6 +4,7 @@ import { delimiter, join, relative, resolve } from "node:path";
 import { homedir } from "node:os";
 
 import { CliError } from "./store";
+import { installSkills, skillStatus, uninstallSkills, type SkillReport } from "./skills";
 
 /**
  * Where an `npx github:AustineA/framecraft install` puts the app.
@@ -117,6 +118,8 @@ export type InstallResult = {
   bin: string;
   copied: boolean;
   onPath: boolean;
+  /** The agent skills shipped in `.agents/skills`, now linked into the user's agents. */
+  skills: SkillReport[];
 };
 
 /**
@@ -154,16 +157,19 @@ export function install(): InstallResult {
     run(["link"], root, "npm link");
     const bin = linkedPath();
     if (!bin) throw new CliError("Linked, but framecraft is not on your PATH.");
-    return { root, bin, copied: fromCache, onPath: true };
+    return { root, bin, copied: fromCache, onPath: true, skills: installSkills(root) };
   }
 
   const { dir, onPath } = chooseBinDir();
-  return { root, bin: writeShim(dir, entry), copied: fromCache, onPath };
+  return { root, bin: writeShim(dir, entry), copied: fromCache, onPath, skills: installSkills(root) };
 }
 
-export type UninstallResult = { unlinked: boolean; removed: string | undefined };
+export type UninstallResult = { unlinked: boolean; removed: string | undefined; skills: string[] };
 
 export function uninstall(): UninstallResult {
+  // Skills first: the list of bundled skills is read from the package being removed.
+  const skills = uninstallSkills(packageRoot());
+
   // Remove the shim, and any npm global link from an older install.
   let unlinked = false;
   for (const dir of BIN_DIRS) {
@@ -183,7 +189,7 @@ export function uninstall(): UninstallResult {
     rmSync(INSTALL_DIR, { recursive: true, force: true });
     removed = INSTALL_DIR;
   }
-  return { unlinked, removed };
+  return { unlinked, removed, skills };
 }
 
 export type StatusResult = {
@@ -192,6 +198,7 @@ export type StatusResult = {
   root: string;
   managed: boolean;
   node: string;
+  skills: SkillReport[];
 };
 
 /**
@@ -210,5 +217,6 @@ export function status(): StatusResult {
     root,
     managed: root === INSTALL_DIR,
     node: process.version,
+    skills: skillStatus(root),
   };
 }
